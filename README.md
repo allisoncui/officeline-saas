@@ -1,3 +1,5 @@
+# OfficeLine: Where Questions Meet Answers
+
 ## About the Project
 
 Officeline is a SaaS application that centralizes office hours for students and TAs to effectively browse and give/receive academic help. Features include a virtual queue, real-time updates, push notifications, and a dashboard to submit questions and analyze topics.
