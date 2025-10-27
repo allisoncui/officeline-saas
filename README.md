@@ -9,3 +9,5 @@ Officeline is a SaaS application that centralizes office hours for students and 
 - Ariel Thongkham (at3731)
 - Justin Francisco Rios (jfr2153)
 - Raul Hinojos (rh3128)
+
+## How to Run
