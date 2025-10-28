@@ -1,7 +1,7 @@
 class CreateOfficeHours < ActiveRecord::Migration[7.1]
   def change
     create_table :office_hours do |t|
-      t.string 'class'
+      t.string 'course_name'
       t.string 'instructor'
       t.string 'day'
       t.string 'start_time'
