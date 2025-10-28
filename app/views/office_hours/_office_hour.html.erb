@@ -1,26 +1,10 @@
-<div id="<%= dom_id office_hour %>">
-  <p>
-    <strong>Course:</strong>
-    <%= office_hour.course_name %>
-  </p>
-
-  <p>
-    <strong>Instructor:</strong>
-    <%= office_hour.instructor %>
-  </p>
-
-  <p>
-    <strong>Day:</strong>
-    <%= office_hour.day %>
-  </p>
-
+<div id="<%= dom_id office_hour %>" class="ol-card">
+  <p class="ol-title"><strong>Course:</strong> <%= office_hour.course_name %></p>
+  <p><strong>Instructor:</strong> <%= office_hour.instructor %></p>
+  <p><strong>Day:</strong> <%= office_hour.day %></p>
   <p>
     <strong>Time:</strong>
     <%= office_hour.start_time %> - <%= office_hour.end_time %>
   </p>
-
-  <p>
-    <strong>Location:</strong>
-    <%= office_hour.location %>
-  </p>
+  <p><strong>Location:</strong> <%= office_hour.location %></p>
 </div>

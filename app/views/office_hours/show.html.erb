@@ -5,9 +5,12 @@
   <%= render @office_hour %>
 </div>
 
-<div>
+<p class="ol-actions">
   <%= link_to "Edit this office hour", edit_office_hour_path(@office_hour) %> |
   <%= link_to "Back to office hours", office_hours_path %>
+</p>
+
+<p class="ol-actions">
   <%= button_to "Destroy this office hour", @office_hour, method: :delete %>
 </div>
 
@@ -45,3 +48,4 @@
 <% else %>
   <p><em>No questions submitted yet. Be the first to ask!</em></p>
 <% end %>
+</p>

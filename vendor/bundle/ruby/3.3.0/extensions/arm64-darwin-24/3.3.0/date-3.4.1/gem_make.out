@@ -1,0 +1,24 @@
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/date-3.4.1/ext/date
+/Users/justin/.rbenv/versions/3.3.8/bin/ruby extconf.rb
+checking for rb_category_warn()... yes
+checking for timezone in time.h with  -Werror... yes
+checking for altzone in time.h with  -Werror... no
+creating Makefile
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-f4ab0g sitelibdir\=./.gem.20251028-62389-f4ab0g clean
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-f4ab0g sitelibdir\=./.gem.20251028-62389-f4ab0g
+compiling date_core.c
+compiling date_parse.c
+compiling date_strftime.c
+compiling date_strptime.c
+linking shared-object date_core.bundle
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-f4ab0g sitelibdir\=./.gem.20251028-62389-f4ab0g install
+/usr/bin/install -c -m 0755 date_core.bundle ./.gem.20251028-62389-f4ab0g
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-f4ab0g sitelibdir\=./.gem.20251028-62389-f4ab0g clean

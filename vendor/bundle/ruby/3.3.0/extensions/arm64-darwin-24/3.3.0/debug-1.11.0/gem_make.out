@@ -1,0 +1,19 @@
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/debug-1.11.0/ext/debug
+/Users/justin/.rbenv/versions/3.3.8/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/debug-1.11.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-bofyc4 sitelibdir\=./.gem.20251028-62389-bofyc4 clean
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/debug-1.11.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-bofyc4 sitelibdir\=./.gem.20251028-62389-bofyc4
+compiling debug.c
+compiling iseq_collector.c
+linking shared-object debug/debug.bundle
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/debug-1.11.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-bofyc4 sitelibdir\=./.gem.20251028-62389-bofyc4 install
+/usr/bin/install -c -m 0755 debug.bundle ./.gem.20251028-62389-bofyc4/debug
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/debug-1.11.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-bofyc4 sitelibdir\=./.gem.20251028-62389-bofyc4 clean
