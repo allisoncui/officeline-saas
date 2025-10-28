@@ -1,5 +1,6 @@
 class OfficeHour < ApplicationRecord
   validates :course_name, :instructor, :day, :start_time, :end_time, :location, presence: true
+  has_many :questions, dependent: :destroy
 
   # Define day order for sorting
   DAY_ORDER = {
