@@ -5,47 +5,48 @@
   <%= render @office_hour %>
 </div>
 
-<p class="ol-actions">
-  <%= link_to "Edit this office hour", edit_office_hour_path(@office_hour) %> |
-  <%= link_to "Back to office hours", office_hours_path %>
-</p>
+<div class="ol-actions-bar">
+  <span class="ol-actions-left">
+    <%= link_to "Edit this office hour", edit_office_hour_path(@office_hour) %> |
+    <%= link_to "Back to office hours", office_hours_path %>
+  </span>
 
-<p class="ol-actions">
-  <%= button_to "Destroy this office hour", @office_hour, method: :delete %>
+  <%= button_to "Destroy this office hour",
+                @office_hour,
+                method: :delete,
+                form: { class: "ol-inline-form" },
+                class: "ol-btn ol-btn-danger" %>
 </div>
 
-<hr>
-
-<!-- Question Submission Form -->
-<div class="question-form">
-  <h3>Submit a Question</h3>
+<div class="ol-card question-form">
+  <h3 class="ol-section-title">Submit a Question</h3>
   <%= form_with model: [@office_hour, Question.new], local: true do |form| %>
-    <div>
-      <%= form.label :question_text, "Your Question/Topic:" %>
-      <%= form.text_area :question_text, rows: 3, placeholder: "What would you like help with?" %>
+    <div class="ol-field">
+      <%= form.label :question_text, "Your Question/Topic:", class: "ol-label" %>
+      <%= form.text_area :question_text, rows: 3, placeholder: "What would you like help with?", class: "ol-textarea" %>
     </div>
-    <div>
-      <%= form.submit "Submit Question", class: "btn" %>
+    <div class="ol-actions ol-right">
+      <%= form.submit "Submit Question", class: "ol-btn" %>
     </div>
   <% end %>
 </div>
 
-<hr>
-
-<!-- Display Existing Questions -->
-<h3>Previous Questions</h3>
-<% if @office_hour.questions.any? %>
-  <% @office_hour.questions.order(created_at: :desc).each do |question| %>
-    <div class="question-item">
-      <div class="question-text">
-        <strong>Question:</strong> <%= question.question_text %>
-      </div>
-      <div class="question-meta">
-        Submitted: <%= question.created_at.strftime("%B %d, %Y at %I:%M %p") %>
-      </div>
+<h3 class="ol-section-title">Previous Questions</h3>
+<div class="ol-card">
+  <% if @office_hour.questions.any? %>
+    <div class="ol-list">
+      <% @office_hour.questions.order(created_at: :desc).each do |question| %>
+        <div class="question-item">
+          <div class="question-text">
+            <strong>Question:</strong> <%= question.question_text %>
+          </div>
+          <div class="question-meta">
+            Submitted: <%= question.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+          </div>
+        </div>
+      <% end %>
     </div>
+  <% else %>
+    <p><em>No questions submitted yet. Be the first to ask!</em></p>
   <% end %>
-<% else %>
-  <p><em>No questions submitted yet. Be the first to ask!</em></p>
-<% end %>
-</p>
+</div>
