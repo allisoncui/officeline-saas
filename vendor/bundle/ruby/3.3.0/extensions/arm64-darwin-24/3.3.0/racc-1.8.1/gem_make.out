@@ -1,0 +1,18 @@
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+/Users/justin/.rbenv/versions/3.3.8/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-6br6k4 sitelibdir\=./.gem.20251028-62389-6br6k4 clean
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-6br6k4 sitelibdir\=./.gem.20251028-62389-6br6k4
+compiling cparse.c
+linking shared-object racc/cparse.bundle
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-6br6k4 sitelibdir\=./.gem.20251028-62389-6br6k4 install
+/usr/bin/install -c -m 0755 cparse.bundle ./.gem.20251028-62389-6br6k4/racc
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-6br6k4 sitelibdir\=./.gem.20251028-62389-6br6k4 clean

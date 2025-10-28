@@ -1,0 +1,275 @@
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/pg-1.6.0.rc1/ext
+/Users/justin/.rbenv/versions/3.3.8/bin/ruby extconf.rb
+Calling libpq with GVL unlocked
+checking for pg_config... yes
+Using config values from /opt/anaconda3/bin/pg_config
+checking for whether -Wl,-rpath,/opt/anaconda3/lib is accepted as LDFLAGS... yes
+Using libpq from /opt/anaconda3/lib
+checking for libpq-fe.h... yes
+checking for libpq/libpq-fs.h... yes
+checking for pg_config_manual.h... yes
+checking for PQconnectdb() in -lpq... yes
+checking for PQencryptPasswordConn() in libpq-fe.h... yes
+checking for PQresultMemorySize() in libpq-fe.h... yes
+checking for PQenterPipelineMode() in libpq-fe.h... no
+checking for PQsetChunkedRowsMode() in libpq-fe.h... no
+checking for timegm()... yes
+checking for rb_io_wait()... yes
+checking for rb_io_descriptor()... yes
+checking for inttypes.h... yes
+checking for C99 variable length arrays... yes
+creating extconf.h
+creating Makefile
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/pg-1.6.0.rc1/ext
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-pakswu sitelibdir\=./.gem.20251028-62389-pakswu clean
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/pg-1.6.0.rc1/ext
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-pakswu sitelibdir\=./.gem.20251028-62389-pakswu
+compiling gvl_wrappers.c
+In file included from gvl_wrappers.c:6:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg.c
+In file included from pg.c:48:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+pg.c:387:5: warning: 'PG_MAJORVERSION_NUM' is not defined, evaluates to 0 [-Wundef]
+  387 | #if PG_MAJORVERSION_NUM >= 10
+      |     ^
+pg.c:391:5: warning: 'PG_MAJORVERSION_NUM' is not defined, evaluates to 0 [-Wundef]
+  391 | #if PG_MAJORVERSION_NUM >= 10
+      |     ^
+pg.c:395:5: warning: 'PG_MAJORVERSION_NUM' is not defined, evaluates to 0 [-Wundef]
+  395 | #if PG_MAJORVERSION_NUM >= 12
+      |     ^
+pg.c:399:5: warning: 'PG_MAJORVERSION_NUM' is not defined, evaluates to 0 [-Wundef]
+  399 | #if PG_MAJORVERSION_NUM >= 13
+      |     ^
+pg.c:403:5: warning: 'PG_MAJORVERSION_NUM' is not defined, evaluates to 0 [-Wundef]
+  403 | #if PG_MAJORVERSION_NUM >= 14
+      |     ^
+pg.c:407:5: warning: 'PG_MAJORVERSION_NUM' is not defined, evaluates to 0 [-Wundef]
+  407 | #if PG_MAJORVERSION_NUM >= 17
+      |     ^
+7 warnings generated.
+compiling pg_binary_decoder.c
+In file included from pg_binary_decoder.c:8:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_binary_encoder.c
+In file included from pg_binary_encoder.c:7:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_cancel_connection.c
+In file included from pg_cancel_connection.c:1:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_coder.c
+In file included from pg_coder.c:6:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_connection.c
+In file included from pg_connection.c:7:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_copy_coder.c
+In file included from pg_copy_coder.c:6:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_errors.c
+In file included from pg_errors.c:6:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_record_coder.c
+In file included from pg_record_coder.c:6:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_result.c
+In file included from pg_result.c:7:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_text_decoder.c
+In file included from pg_text_decoder.c:32:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_text_encoder.c
+In file included from pg_text_encoder.c:43:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_tuple.c
+In file included from pg_tuple.c:1:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_type_map.c
+In file included from pg_type_map.c:7:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_type_map_all_strings.c
+In file included from pg_type_map_all_strings.c:9:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_type_map_by_class.c
+In file included from pg_type_map_by_class.c:10:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_type_map_by_column.c
+In file included from pg_type_map_by_column.c:7:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_type_map_by_mri_type.c
+In file included from pg_type_map_by_mri_type.c:10:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_type_map_by_oid.c
+In file included from pg_type_map_by_oid.c:7:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_type_map_in_ruby.c
+In file included from pg_type_map_in_ruby.c:7:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+compiling pg_util.c
+In file included from pg_util.c:7:
+In file included from ./pg.h:60:
+/opt/anaconda3/include/pg_config.h:1038:9: warning: 'restrict' macro redefined [-Wmacro-redefined]
+ 1038 | #define restrict __restrict
+      |         ^
+/Users/justin/.rbenv/versions/3.3.8/include/ruby-3.3.0/arm64-darwin24/ruby/config.h:80:9: note: previous definition is here
+   80 | #define restrict __restrict__
+      |         ^
+1 warning generated.
+linking shared-object pg_ext.bundle
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/pg-1.6.0.rc1/ext
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-pakswu sitelibdir\=./.gem.20251028-62389-pakswu install
+/usr/bin/install -c -m 0755 pg_ext.bundle ./.gem.20251028-62389-pakswu
+installing pg_ext libraries
+
+current directory: /Users/justin/Desktop/officeline-saas/vendor/bundle/ruby/3.3.0/gems/pg-1.6.0.rc1/ext
+make DESTDIR\= sitearchdir\=./.gem.20251028-62389-pakswu sitelibdir\=./.gem.20251028-62389-pakswu clean

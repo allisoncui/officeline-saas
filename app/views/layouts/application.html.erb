@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Rottenpotatoes</title>
+    <title>OfficeLine</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -11,6 +11,17 @@
   </head>
 
   <body>
-    <%= yield %>
+    <header class="ol-topbar">
+      <div class="ol-wrap">
+        <%= link_to "OfficeLine", office_hours_path, class: "ol-brand" %>
+      </div>
+    </header>
+
+    <main class="ol-wrap">
+      <% flash.each do |type, msg| %>
+        <div class="ol-flash <%= type %>"><%= msg %></div>
+      <% end %>
+      <%= yield %>
+    </main>
   </body>
 </html>

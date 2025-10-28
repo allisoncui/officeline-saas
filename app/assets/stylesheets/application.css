@@ -13,3 +13,28 @@
  *= require_tree .
  *= require_self
  */
+
+.ol-wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+.ol-topbar { border-bottom: 1px solid #eee; padding: 10px 0; }
+.ol-brand { font-weight: 800; text-decoration: none; color: #111; font-size: 2rem; line-height: 1.2; }
+.ol-flash { margin: 12px 0; padding: 10px 12px; border-radius: 8px; border: 1px solid #e5e7eb; }
+.ol-flash.notice { background: #ecfdf5; border-color: #a7f3d0; }
+.ol-flash.alert  { background: #fef2f2; border-color: #fecaca; }
+
+.ol-controls { margin-bottom: 12px; }
+.ol-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.ol-label { font-weight: 600; margin-right: 6px; }
+.ol-input { padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px; min-width: 260px; }
+.ol-select { padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px; }
+.ol-check { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; }
+
+.ol-btn { display: inline-block; padding: 6px 10px; border: 1px solid #1f2937; border-radius: 6px; background: #111; color: #fff; cursor: pointer; }
+.ol-link { margin-left: 8px; font-size: 0.95rem; }
+
+.ol-muted { color: #6b7280; }
+
+.ol-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.ol-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px 14px; background: #fff; }
+.ol-title { margin: 0 0 4px 0; }
+
+.ol-actions { margin: 6px 0 0 0; }

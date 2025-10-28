@@ -1,36 +1,45 @@
-<p style="color: green"><%= notice %></p>
+<%= form_tag office_hours_path, method: :get, id: 'days_form', local: true, class: "ol-controls" do %>
+  <div class="ol-row">
+    <span class="ol-label">Include:</span>
+    <% @all_days.each do |day| %>
+      <label class="ol-check">
+        <%= check_box_tag "days[#{day}]", "1", @days_to_show.include?(day), class: 'form-check-input' %>
+        <span><%= day %></span>
+      </label>
+    <% end %>
+  </div>
 
-<%= form_tag office_hours_path, method: :get, id: 'days_form', local: true do %>
-  Include:
-  <% @all_days.each do |day| %>
-    <div class="form-check form-check-inline">
-      <%= check_box_tag "days[#{day}]", "1", @days_to_show.include?(day), class: 'form-check-input' %>
-      <%= label_tag "days[#{day}]", day, class: 'form-check-label' %>
-    </div>
-  <% end %>
-  <div class="form-check form-check-inline">
-    <label class="form-label me-2" for="sort_by">Sort by:</label>
+  <div class="ol-row">
+    <label class="ol-label" for="sort_by">Sort by:</label>
     <%= select_tag :sort_by,
                    options_for_select([["Course", "course_name"],
                                        ["Instructor", "instructor"],
-                                       ["Day & Time", "day"]],
-                                       @sort_by),
-                   id:    "sort_by",
-                   class: "form-select d-inline w-auto" %>
+                                       ["Day & Time", "day"]], @sort_by),
+                   id: "sort_by",
+                   class: "ol-select" %>
+
+    <%= submit_tag 'Refresh', id: 'days_submit', class: 'ol-btn' %>
+    <%= link_to "Clear filters", office_hours_path, class: "ol-link" %>
   </div>
-  <%= submit_tag 'Refresh', id: 'days_submit', class: 'btn btn-primary' %>
-  
 <% end %>
 
 <h1>Office Hours</h1>
 
-<div id="office_hours">
+<% if @office_hours.present? %>
+  <p id="results-summary" class="ol-muted"><%= pluralize(@office_hours.size, "result") %></p>
+<% else %>
+  <p id="results-empty" class="ol-muted">No office hours match your filters.</p>
+<% end %>
+
+<div id="office_hours" class="ol-list">
   <% @office_hours.each do |office_hour| %>
     <%= render office_hour %>
-    <p>
+    <p class="ol-actions">
       <%= link_to "Show this office hour", office_hour %>
     </p>
   <% end %>
 </div>
 
-<%= link_to "New office hour", new_office_hour_path %>
+<p class="ol-actions">
+  <%= link_to "New office hour", new_office_hour_path %>
+</p>
