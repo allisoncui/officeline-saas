@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_02_121840) do
+ActiveRecord::Schema[7.1].define(version: 2025_10_28_204017) do
   create_table "office_hours", force: :cascade do |t|
     t.string "course_name"
     t.string "instructor"
@@ -21,4 +21,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_02_121840) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
+
+  create_table "questions", force: :cascade do |t|
+    t.integer "office_hour_id", null: false
+    t.text "question_text"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["office_hour_id"], name: "index_questions_on_office_hour_id"
+  end
+
+  add_foreign_key "questions", "office_hours"
 end

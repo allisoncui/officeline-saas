@@ -1,10 +1,47 @@
 <p style="color: green"><%= notice %></p>
+<p style="color: red"><%= alert %></p>
 
-<%= render @office_hour %>
+<div class="office-hour-details">
+  <%= render @office_hour %>
+</div>
 
 <div>
   <%= link_to "Edit this office hour", edit_office_hour_path(@office_hour) %> |
   <%= link_to "Back to office hours", office_hours_path %>
-
   <%= button_to "Destroy this office hour", @office_hour, method: :delete %>
 </div>
+
+<hr>
+
+<!-- Question Submission Form -->
+<div class="question-form">
+  <h3>Submit a Question</h3>
+  <%= form_with model: [@office_hour, Question.new], local: true do |form| %>
+    <div>
+      <%= form.label :question_text, "Your Question/Topic:" %>
+      <%= form.text_area :question_text, rows: 3, placeholder: "What would you like help with?" %>
+    </div>
+    <div>
+      <%= form.submit "Submit Question", class: "btn" %>
+    </div>
+  <% end %>
+</div>
+
+<hr>
+
+<!-- Display Existing Questions -->
+<h3>Previous Questions</h3>
+<% if @office_hour.questions.any? %>
+  <% @office_hour.questions.order(created_at: :desc).each do |question| %>
+    <div class="question-item">
+      <div class="question-text">
+        <strong>Question:</strong> <%= question.question_text %>
+      </div>
+      <div class="question-meta">
+        Submitted: <%= question.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+      </div>
+    </div>
+  <% end %>
+<% else %>
+  <p><em>No questions submitted yet. Be the first to ask!</em></p>
+<% end %>

@@ -77,3 +77,28 @@ Then(/complete the rest of of this scenario/) do
   # the line in your scenarios with the appropriate steps.
   raise "Remove this step from your .feature files"
 end
+
+### Question-related steps
+
+When(/I click "Show this office hour" for "(.*)"/) do |course_name|
+  office_hour = OfficeHour.find_by(course_name: course_name)
+  click_link "Show this office hour", href: office_hour_path(office_hour)
+end
+
+Then(/I should be viewing the office hour details for course "(.*)"/) do |course_name|
+  office_hour = OfficeHour.find_by(course_name: course_name)
+  expect(current_path).to eq office_hour_path(office_hour)
+end
+
+Given(/I am viewing the office hour details for course "(.*)"/) do |course_name|
+  office_hour = OfficeHour.find_by(course_name: course_name)
+  visit office_hour_path(office_hour)
+end
+
+# All "I should see" and "I press" steps are handled by web_steps.rb
+
+When(/I click "Back to office hours"/) do
+  click_link "Back to office hours"
+end
+
+# Debug step removed - issue was field ID mismatch
