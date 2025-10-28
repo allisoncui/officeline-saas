@@ -8,6 +8,9 @@ gem "rails", "~> 7.1.5"
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
+# For Rspec
+gem 'faraday', '1.8.0'
+
 # Use sqlite3 as the database for Active Record
 group :development, :test do
     gem "sqlite3", ">= 1.4"
@@ -56,6 +59,8 @@ group :development, :test do
   gem 'database_cleaner'
   gem 'cucumber-rails', require: false
   gem 'rspec-rails'
+  gem 'pry'
+  gem 'pry-byebug'
 end
 
 group :development do
@@ -73,4 +78,6 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+  gem 'rails-controller-testing'
+  gem 'guard-rspec'
 end
