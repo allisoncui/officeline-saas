@@ -13,6 +13,32 @@ describe OfficeHoursController, type: :controller do
       get :index, params: { days: { 'Monday' => '1', 'Wednesday' => '1' }, sort_by: 'instructor' }
     end
 
+    # Sorting behavior
+    it 'stores the selected sort parameter in the session and assigns @sort_by' do
+      get :index, params: { sort_by: 'instructor' }
+      expect(session[:sort_by]).to eq('instructor')
+      expect(assigns(:sort_by)).to eq('instructor')
+    end
+
+    # Days filter persistence
+    it 'stores selected days in the session and assigns @days_to_show' do
+      get :index, params: { days: { 'Monday' => '1', 'Tuesday' => '1' } }
+      expect(session[:days]).to include('Monday', 'Tuesday')
+      expect(assigns(:days_to_show)).to include('Monday', 'Tuesday')
+    end
+
+    # Default behavior when no params provided
+    it 'uses all days and default sort when no params are provided' do
+      allow(OfficeHour).to receive(:all_days).and_return(%w[Monday Tuesday Wednesday])
+      allow(OfficeHour).to receive(:with_filters).and_return(@fake_results)
+
+      get :index
+
+      expect(assigns(:days_to_show)).to eq(%w[Monday Tuesday Wednesday])
+      expect(assigns(:sort_by)).to eq('course_name')
+      expect(response).to render_template('index')
+    end
+
     describe 'after valid filter' do
       before :each do
         allow(OfficeHour).to receive(:with_filters).and_return(@fake_results)
