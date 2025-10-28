@@ -13,8 +13,7 @@
     <%= select_tag :sort_by,
                    options_for_select([["Course", "course_name"],
                                        ["Instructor", "instructor"],
-                                       ["Day", "day"],
-                                       ["Start Time", "start_time"]],
+                                       ["Day & Time", "day"]],
                                        @sort_by),
                    id:    "sort_by",
                    class: "form-select d-inline w-auto" %>

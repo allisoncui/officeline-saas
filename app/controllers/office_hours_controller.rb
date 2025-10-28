@@ -17,13 +17,13 @@ class OfficeHoursController < ApplicationController
       @days_to_show = session[:days] || @all_days
     end
   
-    sort_param = params[:sort_by].presence_in(%w[course_name instructor day start_time])
-  
+    sort_param = params[:sort_by].presence_in(%w[course_name instructor day])
+
     if sort_param
-      @sort_by = sort_param
-      session[:sort_by] = @sort_by
+        @sort_by = sort_param
+        session[:sort_by] = @sort_by
     else
-      @sort_by = session[:sort_by] || "course_name"
+        @sort_by = session[:sort_by] || "course_name"
     end
   
     @office_hours = OfficeHour.with_filters(@days_to_show, @sort_by)
