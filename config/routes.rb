@@ -1,4 +1,4 @@
 Rails.application.routes.draw do
-  resources :movies
-  root :to => redirect('/movies')
+  resources :office_hours
+  root :to => redirect('/office_hours')
 end

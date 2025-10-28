@@ -9,17 +9,19 @@
 #   end
 
 # Seed the RottenPotatoes DB with some movies.
-movies = [{ title: 'Aladdin', rating: 'G', release_date: '25-Nov-1992' },
-          { title: 'The Terminator', rating: 'R', release_date: '26-Oct-1984' },
-          { title: 'When Harry Met Sally', rating: 'R', release_date: '21-Jul-1989' },
-          { title: 'The Help', rating: 'PG-13', release_date: '10-Aug-2011' },
-          { title: 'Chocolat', rating: 'PG-13', release_date: '5-Jan-2001' },
-          { title: 'Amelie', rating: 'R', release_date: '25-Apr-2001' },
-          { title: '2001: A Space Odyssey', rating: 'G', release_date: '6-Apr-1968' },
-          { title: 'The Incredibles', rating: 'PG', release_date: '5-Nov-2004' },
-          { title: 'Raiders of the Lost Ark', rating: 'PG', release_date: '12-Jun-1981' },
-          { title: 'Chicken Run', rating: 'G', release_date: '21-Jun-2000' }]
+hours = [
+  { course_name: 'Engineering SaaS', instructor: 'Junfeng Yang', day: 'Tuesday', start_time: '3:00PM', end_time: '5:00PM', location: 'Zoom' },
+  { course_name: 'Advanced Programming', instructor: 'Jae Woo Lee', day: 'Monday', start_time: '1:00PM', end_time: '3:00PM', location: 'Pupin 301' },
+  { course_name: 'Data Structures', instructor: 'Paul Blaer', day: 'Wednesday', start_time: '2:00PM', end_time: '4:00PM', location: 'Lehman 301' },
+  { course_name: 'Data Structures', instructor: 'Paul Blaer', day: 'Thursday', start_time: '10:00AM', end_time: '12:00PM', location: 'IAB 417' },
+  { course_name: 'Buddhism', instructor: 'Michael Como', day: 'Tuesday', start_time: '8:00AM', end_time: '10:00AM', location: 'Zoom' },
+  { course_name: 'Art Humanities', instructor: 'Ioannis Mylonopoulos', day: 'Tuesday', start_time: '5:00PM', end_time: '7:00PM', location: 'Schermerhorn 608' },
+  { course_name: 'Intermediate Macroeconomics', instructor: 'Irasema Alonso', day: 'Thursday', start_time: '1:00PM', end_time: '3:00PM', location: 'Uris 301' },
+  { course_name: 'Natural Language Processing', instructor: 'Daniel Bauer', day: 'Wednesday', start_time: '2:00PM', end_time: '4:00PM', location: 'NOCO 501' },
+  { course_name: 'Discrete Mathematics', instructor: 'Ansaf Salleb', day: 'Monday', start_time: '4:00PM', end_time: '6:00PM', location: 'Pupin 428' },
+  { course_name: 'Linear Algebra', instructor: 'George Dragomir', day: 'Friday', start_time: '12:00PM', end_time: '2:00PM', location: 'Math 312' }
+]
 
-movies.each do |movie|
-  Movie.create!(movie)
+hours.each do |hour|
+  OfficeHour.create!(hour)
 end

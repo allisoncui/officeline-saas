@@ -11,13 +11,14 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.1].define(version: 2025_07_02_121840) do
-  create_table "movies", force: :cascade do |t|
-    t.string "title"
-    t.string "rating"
-    t.text "description"
-    t.datetime "release_date"
+  create_table "office_hours", force: :cascade do |t|
+    t.string "course_name"
+    t.string "instructor"
+    t.string "day"
+    t.string "start_time"
+    t.string "end_time"
+    t.string "location"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
-
 end
