@@ -11,3 +11,4 @@ Officeline is a SaaS application that centralizes office hours for students and 
 - Raul Hinojos (rh3128)
 
 ## How to Run
+Run `bundle exec rails server -b 0.0.0.0` in root directory
