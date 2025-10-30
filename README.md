@@ -13,5 +13,5 @@ Officeline is a SaaS application that centralizes office hours for students and 
 ## How to Run
 Run `bundle exec rails server -b 0.0.0.0` in root directory
 
-##**Heroku Link**
+## Heroku Link
 https://damp-spire-14128-74e1f1b69c9b.herokuapp.com/
