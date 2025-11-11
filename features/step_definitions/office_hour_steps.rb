@@ -15,7 +15,12 @@ end
 
 Then(/^I should see "(.*)" before "(.*)"$/) do |e1, e2|
   # ensure that e1 occurs before e2 in the page body
-  expect(page.body.index(e1)).to be < page.body.index(e2)
+  index1 = page.body.index(e1)
+  index2 = page.body.index(e2)
+  
+  expect(index1).not_to be_nil, "Expected to find '#{e1}' on the page"
+  expect(index2).not_to be_nil, "Expected to find '#{e2}' on the page"
+  expect(index1).to be < index2, "Expected '#{e1}' to appear before '#{e2}'"
 end
 
 # Make it easier to express checking or unchecking several boxes at once
@@ -48,12 +53,6 @@ Then(/^I should see all of the office hours$/) do
   OfficeHour.all.each do |office_hour|
     expect(page).to have_content(office_hour.course_name)
   end
-end
-
-Then(/^I should see office hours in chronological order by start time$/) do
-  # This would need custom logic to verify time ordering
-  # For now, just check that we see office hours
-  expect(page).to have_css('#office_hours')
 end
 
 ### Utility Steps Just for this assignment.
@@ -95,10 +94,39 @@ Given(/I am viewing the office hour details for course "(.*)"/) do |course_name|
   visit office_hour_path(office_hour)
 end
 
-# All "I should see" and "I press" steps are handled by web_steps.rb
-
 When(/I click "Back to office hours"/) do
   click_link "Back to office hours"
 end
 
-# Debug step removed - issue was field ID mismatch
+### CRUD-related steps for Office Hours
+
+When(/I follow "Show this office hour" for "(.*)"/) do |course_name|
+  office_hour = OfficeHour.find_by(course_name: course_name)
+  click_link "Show this office hour", href: office_hour_path(office_hour)
+end
+
+Then(/I should be on the new office hour page/) do
+  expect(current_path).to eq new_office_hour_path
+end
+
+Then(/I should be on the office hour detail page/) do
+  expect(current_path).to match(/\/office_hours\/\d+/)
+end
+
+Then(/I should be on the edit office hour page/) do
+  expect(current_path).to match(/\/office_hours\/\d+\/edit/)
+end
+
+Then(/I should be on the office hours home page/) do
+  expect(current_path).to eq office_hours_path
+end
+
+### Validation-related steps
+
+Then(/I should see error messages/) do
+  expect(page).to have_content(/error|prohibited|can't be blank/i)
+end
+
+Then(/I should see "(.*)" in the error messages/) do |field_name|
+  expect(page).to have_content(/#{field_name}.*error|error.*#{field_name}/i)
+end

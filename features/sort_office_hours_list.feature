@@ -23,21 +23,21 @@ Background: office hours have been added to database
   Then 10 seed office hours should exist
 
 Scenario: sort office hours alphabetically by course name
-  When I select "Course" from "sort_by"
+  When I select "Course (alphabetical)" from "sort_by"
   And I press "Refresh"
   Then I should see "Advanced Programming" before "Art Humanities"
   And I should see "Buddhism" before "Data Structures"
   And I should see "Discrete Mathematics" before "Engineering SaaS"
 
 Scenario: sort office hours by day and time
-  When I select "Day & Time" from "sort_by"
+  When I select "Day & Time (chronological)" from "sort_by"
   And I press "Refresh"
   Then I should see "Advanced Programming" before "Discrete Mathematics"
   And I should see "Buddhism" before "Engineering SaaS"
   And I should see "Data Structures" before "Linear Algebra"
 
 Scenario: sort office hours by instructor
-  When I select "Instructor" from "sort_by"
+  When I select "Instructor (alphabetical)" from "sort_by"
   And I press "Refresh"
   Then I should see "Ansaf Salleb" before "Daniel Bauer"
   And I should see "Daniel Bauer" before "George Dragomir"

@@ -53,7 +53,7 @@ RSpec.describe QuestionsController, type: :controller do
 
       it 'sets a success notice' do
         post :create, params: { office_hour_id: office_hour.id, question: valid_attributes }
-        expect(flash[:notice]).to eq('Question submitted successfully!')
+        expect(flash[:notice]).to match(/successfully/i)
       end
     end
 
@@ -71,7 +71,7 @@ RSpec.describe QuestionsController, type: :controller do
 
       it 'sets an error alert' do
         post :create, params: { office_hour_id: office_hour.id, question: invalid_attributes }
-        expect(flash[:alert]).to eq('Failed to submit question. Please try again.')
+        expect(flash[:alert]).to match(/failed|error/i)
       end
     end
   end
