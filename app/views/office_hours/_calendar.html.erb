@@ -1,0 +1,56 @@
+<div id="calendar-view">
+  <div class="calendar-header">
+    <div class="time-col"></div>
+    <% days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] %>
+    <% days.each do |day| %>
+      <div class="day-header"><%= day %></div>
+    <% end %>
+  </div>
+
+  <div class="calendar-body">
+    <div class="calendar-grid">
+      <% (7..20).each do |hour| %>
+        <div class="time-label"><%= "#{hour}:00" %></div>
+        <% days.each do |day| %>
+          <div class="day-cell" data-day="<%= day %>" data-hour="<%= hour %>"></div>
+        <% end %>
+      <% end %>
+
+      <% days.each_with_index do |day, col_index| %>
+        <div class="day-layer" style="grid-column: <%= col_index + 2 %>; grid-row: 1 / -1;">
+          <% events = @office_hours.select { |oh| oh.day == day && oh.start_time.present? && oh.end_time.present? } %>
+
+          <% events.each_with_index do |oh, i| %>
+            <% start_t = Time.parse(oh.start_time) rescue nil %>
+            <% end_t   = Time.parse(oh.end_time)   rescue nil %>
+            <% next unless start_t && end_t %>
+
+            <% start_hour = start_t.hour + start_t.min / 60.0 %>
+            <% end_hour = end_t.hour + end_t.min / 60.0 %>
+            <% duration = end_hour - start_hour %>
+
+            <% overlaps = events.select do |other|
+                 next if oh == other
+                 s = Time.parse(other.start_time) rescue nil
+                 e = Time.parse(other.end_time) rescue nil
+                 next false unless s && e
+                 (start_t < e && end_t > s)
+               end.count %>
+
+            <% width_percent = 100.0 / ([1, overlaps + 1].max) %>
+            <% left_offset = i % ([1, overlaps + 1].max) * width_percent %>
+
+            <%= link_to oh, class: "event", style: "top:#{((start_hour - 8) * 80).floor}px;
+                                      height:#{(duration * 80).floor}px;
+                                      left:#{left_offset}%;
+                                      width:#{width_percent}%;" do %>
+            <strong><%= oh.course_name %></strong><br>
+            <span class="instructor"><%= oh.instructor %></span><br>
+            <span class="location"><%= oh.location %></span>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

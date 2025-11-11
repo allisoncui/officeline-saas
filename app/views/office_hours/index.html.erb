@@ -21,24 +21,49 @@
     <%= submit_tag 'Refresh', id: 'days_submit', class: 'ol-btn' %>
     <%= link_to "Clear filters", office_hours_path, class: "ol-link" %>
   </div>
-<% end %>
 
-<h1>Office Hours</h1>
+  <h1>Office Hours</h1>
 
-<% if @office_hours.present? %>
-  <p id="results-summary" class="ol-muted"><%= pluralize(@office_hours.size, "result") %></p>
-<% else %>
-  <p id="results-empty" class="ol-muted">No office hours match your filters.</p>
-<% end %>
-
-<div id="office_hours" class="ol-list">
-  <% @office_hours.each do |office_hour| %>
-    <%= render office_hour %>
-    <p class="ol-actions">
-      <%= link_to "Show this office hour", office_hour %>
-    </p>
+  <% if @office_hours.present? %>
+  <p id="results-summary" class="ol-muted">
+    <%= pluralize(@office_hours.size, "result") %>
+  </p>
+  <% else %>
+    <p id="results-empty" class="ol-muted">No office hours match your filters.</p>
   <% end %>
-</div>
+
+  <% current_view = params[:view] == "calendar" ? "calendar" : "list" %>
+  <%= hidden_field_tag :view, current_view, id: "hidden_view" %>
+
+  <div class="toggle-container">
+    <input type="checkbox"
+           id="calendar_toggle"
+           <%= "checked" if current_view == "calendar" %>
+           onchange="
+             const hv = document.getElementById('hidden_view');
+             hv.value = this.checked ? 'calendar' : 'list';
+             this.form.submit();
+           ">
+    <label for="calendar_toggle" class="toggle-label">
+      <span class="toggle-option list">List</span>
+      <span class="toggle-option calendar">Calendar</span>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+<% end %>
+
+<% if params[:view] == "calendar" %>
+  <%= render "calendar" %>
+<% else %>
+  <div id="office_hours" class="ol-list">
+    <% @office_hours.each do |office_hour| %>
+      <%= render office_hour %>
+      <p class="ol-actions">
+        <%= link_to "Show this office hour", office_hour %>
+      </p>
+    <% end %>
+  </div>
+<% end %>
 
 <p class="ol-actions">
   <%= link_to "New office hour", new_office_hour_path %>
