@@ -10,7 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_12_043033) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_12_152700) do
+  create_table "enrollments", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "office_hour_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["office_hour_id"], name: "index_enrollments_on_office_hour_id"
+    t.index ["user_id", "office_hour_id"], name: "index_enrollments_on_user_id_and_office_hour_id", unique: true
+    t.index ["user_id"], name: "index_enrollments_on_user_id"
+  end
+
   create_table "office_hours", force: :cascade do |t|
     t.string "course_name"
     t.string "instructor"
@@ -28,7 +38,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_043033) do
     t.text "question_text"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
     t.index ["office_hour_id"], name: "index_questions_on_office_hour_id"
+    t.index ["user_id"], name: "index_questions_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -45,5 +57,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_043033) do
     t.index ["uni"], name: "index_users_on_uni", unique: true
   end
 
+  add_foreign_key "enrollments", "office_hours"
+  add_foreign_key "enrollments", "users"
   add_foreign_key "questions", "office_hours"
+  add_foreign_key "questions", "users"
 end

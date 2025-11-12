@@ -1,8 +1,9 @@
 class OfficeHour < ApplicationRecord
   validates :course_name, :instructor, :day, :start_time, :end_time, :location, presence: true
-  validates :course_name, :day, :start_time, :end_time, :location, presence: true
   validates :ta_uni, presence: true, if: -> { instructor.present? }
   has_many :questions, dependent: :destroy
+  has_many :enrollments, dependent: :destroy
+  has_many :students, through: :enrollments, source: :user
 
   # Define day order for sorting
   DAY_ORDER = {

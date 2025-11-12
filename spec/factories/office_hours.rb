@@ -6,5 +6,6 @@ FactoryBot.define do
     start_time { "3:00PM" }
     end_time { "5:00PM" }
     location { "Zoom" }
+    ta_uni { "jy2233" }
   end
 end

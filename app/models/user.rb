@@ -8,6 +8,9 @@ class User < ApplicationRecord
   validates :uni, presence: true, uniqueness: true
   validates :role, presence: true, inclusion: { in: %w[student ta] }
   
+  has_many :enrollments, dependent: :destroy
+  has_many :saved_office_hours, through: :enrollments, source: :office_hour
+  
   # Override Devise's email requirement
   def email_required?
     false
@@ -29,4 +32,6 @@ class User < ApplicationRecord
   def student?
     role.to_s.downcase == "student"
   end
+  
+  has_many :questions, dependent: :destroy
 end

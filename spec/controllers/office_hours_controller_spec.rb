@@ -2,6 +2,7 @@ require 'rails_helper'
 
 describe OfficeHoursController, type: :controller do
   let(:user) { create(:user, uni: 'test123', role: 'student') }
+  let(:ta_user) { create(:user, uni: 'ta123', role: 'ta') }
   
   before :each do
     sign_in user
@@ -38,7 +39,7 @@ describe OfficeHoursController, type: :controller do
       get :index
       expect(assigns(:days_to_show)).to eq(%w[Monday Tuesday Wednesday])
       expect(assigns(:sort_by)).to eq('course_name')
-      expect(response).to render_template('index')
+      expect(response).to render_template('student_index')
     end
 
     describe 'after valid filter' do
@@ -48,7 +49,7 @@ describe OfficeHoursController, type: :controller do
       end
 
       it 'selects the index template for rendering' do
-        expect(response).to render_template('index')
+        expect(response).to render_template('student_index')
       end
 
       it 'makes the filtered office hours available to that template' do
@@ -61,7 +62,7 @@ describe OfficeHoursController, type: :controller do
   describe 'GET #show' do
     it 'assigns the requested office hour to @office_hour' do
       office_hour = OfficeHour.create!(course_name: 'Math', instructor: 'Lee', day: 'Monday',
-                                       start_time: '9:00', end_time: '10:00', location: 'BH210')
+                                       start_time: '9:00', end_time: '10:00', location: 'BH210', ta_uni: 'lee123')
       get :show, params: { id: office_hour.id }
       expect(assigns(:office_hour)).to eq(office_hour)
       expect(response).to render_template('show')
@@ -86,15 +87,19 @@ describe OfficeHoursController, type: :controller do
         day: 'Tuesday',
         start_time: '11:00',
         end_time: '12:00',
-        location: 'BH310'
+        location: 'BH310',
+        ta_uni: 'carter001'
       }
     end
 
     let(:invalid_attributes) { { course_name: '', instructor: '', day: '' } }
 
     it 'creates a new OfficeHour with valid params and redirects to show' do
+      sign_out user
+      sign_in ta_user
+
       expect {
-        post :create, params: { office_hour: valid_attributes }
+        post :create, params: { office_hour: valid_attributes.except(:ta_uni) }
       }.to change(OfficeHour, :count).by(1)
 
       expect(response).to redirect_to(OfficeHour.last)
@@ -102,6 +107,9 @@ describe OfficeHoursController, type: :controller do
     end
 
     it 're-renders new when invalid params are provided' do
+      sign_out user
+      sign_in ta_user
+
       expect {
         post :create, params: { office_hour: invalid_attributes }
       }.not_to change(OfficeHour, :count)
@@ -119,7 +127,8 @@ describe OfficeHoursController, type: :controller do
         day: 'Wednesday',
         start_time: '10:00',
         end_time: '11:00',
-        location: 'BH100'
+        location: 'BH100',
+        ta_uni: 'smith001'
       )
     end
 
@@ -154,7 +163,8 @@ describe OfficeHoursController, type: :controller do
         day: 'Friday',
         start_time: '8:00',
         end_time: '9:00',
-        location: 'BH500'
+        location: 'BH500',
+        ta_uni: 'lin001'
       )
 
       expect {

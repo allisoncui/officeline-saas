@@ -19,6 +19,10 @@
             <span class="ol-user-info">
               <%= current_user.uni %> (<%= current_user.role.upcase %>)
             </span>
+            <% if current_user.student? %>
+              <%= link_to "My Classes", student_profile_path, class: "ol-link" %>
+              <%= link_to "My Questions", student_questions_path, class: "ol-link" %>
+            <% end %>
             <%= button_to "Log out", destroy_user_session_path, method: :delete, class: "ol-btn ol-btn-logout" %>
           <% else %>
             <%= link_to "Sign in", new_user_session_path, class: "ol-link" %>

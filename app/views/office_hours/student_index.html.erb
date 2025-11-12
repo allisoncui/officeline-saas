@@ -59,28 +59,45 @@
   <div id="office_hours" class="ol-list">
     <% if @office_hours.present? %>
       <% @office_hours.each do |oh| %>
-        <%= link_to office_hour_path(oh),
-            style: "text-decoration: none; color: inherit; display: block;" do %>
-          <div class="ol-card"
-               style="
-                 position: relative;
-                 margin-top: 12px;
-                 padding: 16px;
-                 border-radius: 10px;
-                 background: #f9fafb;
-                 cursor: pointer;
-                 transition: all 0.2s ease-in-out;
-                 border: 1px solid #e5e7eb;
-               "
-               onmouseover="this.style.background='#e0ecff'; this.style.transform='scale(1.01)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';"
-               onmouseout="this.style.background='#f9fafb'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
-            <p><strong>Course:</strong> <%= oh.course_name %></p>
-            <p><strong>Instructor:</strong> <%= oh.instructor %></p>
-            <p><strong>Day:</strong> <%= oh.day %></p>
-            <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
-            <p><strong>Location:</strong> <%= oh.location %></p>
+        <% saved = Array(@saved_office_hour_ids).include?(oh.id) %>
+        <div class="ol-card ol-card-hover ol-card-stack <%= 'ol-card-saved' if saved %>">
+          <div class="ol-card-header">
+            <% if saved %>
+              <span class="ol-tag">Saved</span>
+              <%= button_to 'Remove', office_hour_enrollment_path(oh),
+                            method: :delete,
+                            class: 'ol-btn ol-btn-outline',
+                            data: { turbo: false } %>
+            <% else %>
+              <%= button_to 'Save to My Classes', office_hour_enrollment_path(oh),
+                            method: :post,
+                            class: 'ol-btn',
+                            data: { turbo: false } %>
+            <% end %>
           </div>
-        <% end %>
+
+          <%= link_to office_hour_path(oh), class: "ol-card-link-area" do %>
+            <span class="sr-only">Show this office hour</span>
+            <div class="ol-card-content">
+              <h3 class="ol-card-title"><%= oh.course_name %></h3>
+              <p class="ol-card-instructor"><%= oh.instructor %></p>
+              <div class="ol-card-details">
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">📅</span>
+                  <span><%= oh.day %></span>
+                </div>
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">🕐</span>
+                  <span><%= oh.start_time %> - <%= oh.end_time %></span>
+                </div>
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">📍</span>
+                  <span><%= oh.location %></span>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
       <% end %>
     <% else %>
       <p class="ol-muted">No office hours available right now.</p>

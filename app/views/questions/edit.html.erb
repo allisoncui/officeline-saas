@@ -1,0 +1,30 @@
+<h2 class="ol-section-title">Edit Question</h2>
+
+<div class="ol-card question-form">
+  <%= form_with model: [@office_hour, @question], local: true do |form| %>
+    <% if @question.errors.any? %>
+      <div class="ol-flash alert">
+        <ul style="margin: 0; padding-left: 20px;">
+          <% @question.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="ol-field">
+      <%= form.label :question_text, "Your Question/Topic:", class: "ol-label" %>
+      <%= form.text_area :question_text, rows: 4,
+          placeholder: "What would you like help with?",
+          class: "ol-textarea" %>
+    </div>
+    
+    <div class="ol-actions-bar">
+      <%= form.submit "Update Question",
+          class: "ol-btn",
+          style: "background: #2563eb; color: white; border-radius: 6px; padding: 8px 14px;" %>
+      <%= link_to "Cancel", @office_hour, class: "ol-link" %>
+    </div>
+  <% end %>
+</div>
+

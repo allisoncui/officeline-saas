@@ -41,6 +41,7 @@ class OfficeHoursController < ApplicationController
       render :ta_index
     else
       @office_hours = OfficeHour.with_filters(@days_to_show, @sort_by)
+      @saved_office_hour_ids = current_user.saved_office_hours.pluck(:id) if current_user&.student?
       render :student_index
     end
   

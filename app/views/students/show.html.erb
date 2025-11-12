@@ -1,0 +1,77 @@
+<%= form_tag student_profile_path, method: :get, id: 'days_form', local: true, class: "ol-controls" do %>
+  <div class="ol-row">
+    <span class="ol-label">Include:</span>
+    <% @all_days.each do |day| %>
+      <label class="ol-check">
+        <%= check_box_tag "days[#{day}]", "1", @days_to_show.include?(day), class: 'form-check-input' %>
+        <span><%= day %></span>
+      </label>
+    <% end %>
+  </div>
+
+  <div class="ol-row">
+    <label class="ol-label" for="sort_by">Sort by:</label>
+    <%= select_tag :sort_by,
+                   options_for_select([["Course", "course_name"],
+                                       ["Instructor", "instructor"],
+                                       ["Day & Time", "day"]], @sort_by),
+                   id: "sort_by",
+                   class: "ol-select" %>
+
+    <%= submit_tag 'Refresh', id: 'days_submit', class: 'ol-btn' %>
+    <%= link_to "Clear filters", student_profile_path, class: "ol-link" %>
+  </div>
+<% end %>
+
+<h1 class="ol-title">My Saved Classes</h1>
+
+<% if @saved_office_hours.any? %>
+  <p id="results-summary" class="ol-muted" style="margin-bottom: 16px;">
+    <%= pluralize(@saved_office_hours.size, "saved class") %>
+  </p>
+<% else %>
+  <p id="results-empty" class="ol-muted" style="margin-bottom: 16px;">
+    <% if current_user.saved_office_hours.any? %>
+      No saved classes match your filters.
+    <% else %>
+      You haven't saved any classes yet. Head back to the office hours list and tap "Save to My Classes."
+    <% end %>
+  </p>
+<% end %>
+
+<% if @saved_office_hours.any? %>
+  <div class="ol-list">
+    <% @saved_office_hours.each do |oh| %>
+      <div class="ol-card ol-card-hover ol-card-stack ol-card-saved">
+        <div class="ol-card-header">
+          <span class="ol-tag">Saved</span>
+          <%= button_to 'Remove', office_hour_enrollment_path(oh),
+                        method: :delete,
+                        class: 'ol-btn ol-btn-outline',
+                        data: { turbo: false } %>
+        </div>
+        <%= link_to office_hour_path(oh), class: 'ol-card-link-area' do %>
+          <span class="sr-only">Show this office hour</span>
+          <div class="ol-card-content">
+            <h3 class="ol-card-title"><%= oh.course_name %></h3>
+            <p class="ol-card-instructor"><%= oh.instructor %></p>
+            <div class="ol-card-details">
+              <div class="ol-card-detail-item">
+                <span class="ol-card-detail-label">📅</span>
+                <span><%= oh.day %></span>
+              </div>
+              <div class="ol-card-detail-item">
+                <span class="ol-card-detail-label">🕐</span>
+                <span><%= oh.start_time %> - <%= oh.end_time %></span>
+              </div>
+              <div class="ol-card-detail-item">
+                <span class="ol-card-detail-label">📍</span>
+                <span><%= oh.location %></span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

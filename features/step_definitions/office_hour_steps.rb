@@ -1,7 +1,10 @@
+require 'securerandom'
+
 # Add a declarative step here for populating the DB with office hours.
 
 Given(/the following office hours exist/) do |office_hours_table|
   office_hours_table.hashes.each do |office_hour|
+    office_hour['ta_uni'] ||= "auto_ta_#{SecureRandom.hex(3)}"
     OfficeHour.create!(office_hour)
   end
 end
@@ -98,7 +101,7 @@ end
 # All "I should see" and "I press" steps are handled by web_steps.rb
 
 When(/I click "Back to office hours"/) do
-  click_link "Back to office hours"
+  click_link('Back to office hours')
 end
 
 # Debug step removed - issue was field ID mismatch
