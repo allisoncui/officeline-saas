@@ -20,4 +20,13 @@ class User < ApplicationRecord
   def will_save_change_to_email?
     false
   end
+
+  # Role helpers
+  def ta?
+    role.to_s.downcase == "ta"
+  end
+
+  def student?
+    role.to_s.downcase == "student"
+  end
 end

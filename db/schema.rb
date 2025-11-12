@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_12_011156) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_12_043033) do
   create_table "office_hours", force: :cascade do |t|
     t.string "course_name"
     t.string "instructor"
@@ -20,6 +20,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_011156) do
     t.string "location"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "ta_uni"
   end
 
   create_table "questions", force: :cascade do |t|
@@ -37,9 +38,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_011156) do
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
     t.string "role"
-    t.string "class_code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "course_name"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uni"], name: "index_users_on_uni", unique: true
   end

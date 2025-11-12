@@ -1,0 +1,36 @@
+<h2>Class: <%= current_user.course_name %></h2>
+
+<div class="ol-row" style="margin-top: 16px;">
+  <%= link_to "My Hours", office_hours_path(view: 'my'), class: "ol-btn", style: (@view == 'my' ? 'background:#2563eb;color:white;' : 'background:#e5e7eb;color:#111;') %>
+  <%= link_to "All Hours", office_hours_path(view: 'all'), class: "ol-btn", style: (@view == 'all' ? 'background:#2563eb;color:white;' : 'background:#e5e7eb;color:#111;') %>
+</div>
+
+<% if @view == 'my' %>
+  <% if @my_office_hours.any? %>
+    <% @my_office_hours.each do |oh| %>
+      <div class="ol-card" style="margin-top: 10px;">
+        <p><strong>Day:</strong> <%= oh.day %></p>
+        <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
+        <p><strong>Location:</strong> <%= oh.location %></p>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="ol-muted" style="margin-top: 12px;">You have no office hours scheduled yet.</p>
+  <% end %>
+  <p class="ol-actions" style="margin-top: 12px;">
+    <%= link_to "Add New Office Hour", new_office_hour_path, class: "ol-btn" %>
+  </p>
+<% else %>
+  <% if @all_office_hours.any? %>
+    <% @all_office_hours.each do |oh| %>
+      <div class="ol-card" style="margin-top: 10px;">
+        <p><strong>Day:</strong> <%= oh.day %></p>
+        <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
+        <p><strong>Location:</strong> <%= oh.location %></p>
+        <p><strong>TA:</strong> <%= oh.ta_uni %></p>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="ol-muted" style="margin-top: 12px;">No office hours available for this course.</p>
+  <% end %>
+<% end %>

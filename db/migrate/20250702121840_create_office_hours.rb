@@ -7,8 +7,6 @@ class CreateOfficeHours < ActiveRecord::Migration[7.1]
       t.string 'start_time'
       t.string 'end_time'
       t.string 'location'
-      # Add fields that let Rails automatically keep track
-      # of when office hours are added or modified:
       t.timestamps
     end
   end

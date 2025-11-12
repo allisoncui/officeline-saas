@@ -25,8 +25,22 @@ class OfficeHoursController < ApplicationController
     else
         @sort_by = session[:sort_by] || "course_name"
     end
+
+    # role based logic
+    if current_user&.ta?
+      # fetch all office hours under the TA's course
+      @all_office_hours = OfficeHour.where(course_name: current_user.course_name)
+    
+      # fetch only this TA's own hours
+      @my_office_hours = @all_office_hours.where(ta_uni: current_user.uni)
+    
+      @view = params[:view] == 'all' ? 'all' : 'my'
+      render :ta_index
+    else
+      @office_hours = OfficeHour.with_filters(@days_to_show, @sort_by)
+      render :student_index
+    end
   
-    @office_hours = OfficeHour.with_filters(@days_to_show, @sort_by)
   end
 
   # GET /office_hours/1 or /office_hours/1.json
@@ -45,6 +59,7 @@ class OfficeHoursController < ApplicationController
   # POST /office_hours or /office_hours.json
   def create
     @office_hour = OfficeHour.new(office_hour_params)
+    @office_hour.ta_uni = current_user.uni if current_user&.ta? # automatically assign TA UNI if logged in as TA
 
     respond_to do |format|
       if @office_hour.save
@@ -88,6 +103,6 @@ class OfficeHoursController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def office_hour_params
-      params.require(:office_hour).permit(:course_name, :instructor, :day, :start_time, :end_time, :location)
+      params.require(:office_hour).permit(:course_name, :instructor, :day, :start_time, :end_time, :location, :ta_uni)
     end
 end

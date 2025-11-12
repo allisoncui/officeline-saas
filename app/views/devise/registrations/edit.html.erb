@@ -10,13 +10,17 @@
 
   <div class="field">
     <%= f.label :role, "Role" %><br />
-    <%= f.select :role, options_for_select([['Student', 'student'], ['TA', 'ta']], resource.role), {}, { autocomplete: "role" } %>
+    <%= f.select :role, options_for_select([['Student', 'student'], ['TA', 'ta']], f.object.role),
+                 { prompt: 'Select your role' },
+                 { onchange: 'this.form.submit();' } %>
   </div>
 
-  <div class="field">
-    <%= f.label :class_code, "Class Code" %><br />
-    <%= f.text_field :class_code, autocomplete: "class_code", placeholder: "Enter class code to join" %>
-  </div>
+  <% if f.object.role == 'ta' %>
+    <div class="field">
+      <%= f.label :course_name, "Course Name" %><br />
+      <%= f.text_field :course_name, placeholder: "Enter your course name (e.g. Data Structures)" %>
+    </div>
+  <% end %>
 
   <div class="field">
     <%= f.label :password %> <i>(leave blank if you don't want to change it)</i><br />
