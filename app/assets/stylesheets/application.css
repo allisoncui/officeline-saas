@@ -17,7 +17,11 @@
 /* Layout / Header */
 .ol-wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
 .ol-topbar { border-bottom: 1px solid #eee; padding: 10px 0; }
+.ol-header { display: flex; justify-content: space-between; align-items: center; }
 .ol-brand { font-weight: 800; text-decoration: none; color: #111; font-size: 2rem; line-height: 1.2; }
+.ol-user-menu { display: flex; align-items: center; gap: 12px; }
+.ol-user-info { color: #6b7280; font-size: 0.9rem; margin-right: 4px; }
+.ol-btn-logout { text-decoration: none; border: none; }
 
 /* Flash messages */
 .ol-flash { margin: 12px 0; padding: 10px 12px; border-radius: 8px; border: 1px solid #e5e7eb; }

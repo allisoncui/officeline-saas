@@ -1,9 +1,14 @@
 require 'rails_helper'
 
 RSpec.describe QuestionsController, type: :controller do
+  let(:user) { create(:user, uni: 'test123', role: 'student') }
   let(:office_hour) { create(:office_hour) }
   let(:valid_attributes) { { question_text: 'How do I implement authentication?' } }
   let(:invalid_attributes) { { question_text: '' } }
+  
+  before :each do
+    sign_in user
+  end
 
   describe 'GET #index' do
     it 'assigns the office hour' do

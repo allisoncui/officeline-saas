@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
+  devise_for :users, controllers: {
+    registrations: 'users/registrations'
+  }
   resources :office_hours do
     resources :questions, only: [:create, :index]
   end
-  root :to => redirect('/office_hours')
+  root 'office_hours#index'
 end

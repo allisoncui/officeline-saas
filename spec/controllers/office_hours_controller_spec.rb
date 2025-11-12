@@ -1,6 +1,12 @@
 require 'rails_helper'
 
 describe OfficeHoursController, type: :controller do
+  let(:user) { create(:user, uni: 'test123', role: 'student') }
+  
+  before :each do
+    sign_in user
+  end
+  
   # Index: filtering and sorting
   describe 'GET #index' do
     before :each do

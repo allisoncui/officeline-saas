@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_10_28_204017) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_12_011156) do
   create_table "office_hours", force: :cascade do |t|
     t.string "course_name"
     t.string "instructor"
@@ -28,6 +28,20 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_28_204017) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["office_hour_id"], name: "index_questions_on_office_hour_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "uni", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.string "role"
+    t.string "class_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["uni"], name: "index_users_on_uni", unique: true
   end
 
   add_foreign_key "questions", "office_hours"

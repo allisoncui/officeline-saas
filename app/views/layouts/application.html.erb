@@ -12,8 +12,19 @@
 
   <body>
     <header class="ol-topbar">
-      <div class="ol-wrap">
+      <div class="ol-wrap ol-header">
         <%= link_to "OfficeLine", office_hours_path, class: "ol-brand" %>
+        <div class="ol-user-menu">
+          <% if user_signed_in? %>
+            <span class="ol-user-info">
+              <%= current_user.uni %> (<%= current_user.role.upcase %>)
+            </span>
+            <%= button_to "Log out", destroy_user_session_path, method: :delete, class: "ol-btn ol-btn-logout" %>
+          <% else %>
+            <%= link_to "Sign in", new_user_session_path, class: "ol-link" %>
+            <%= link_to "Sign up", new_user_registration_path, class: "ol-btn" %>
+          <% end %>
+        </div>
       </div>
     </header>
 
