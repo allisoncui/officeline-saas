@@ -30,11 +30,14 @@ class OfficeHoursController < ApplicationController
     if current_user&.ta?
       # fetch all office hours under the TA's course
       @all_office_hours = OfficeHour.where(course_name: current_user.course_name)
-    
+      
       # fetch only this TA's own hours
       @my_office_hours = @all_office_hours.where(ta_uni: current_user.uni)
     
+      # toggle between 'my' and 'all'
       @view = params[:view] == 'all' ? 'all' : 'my'
+      @office_hours = @view == 'all' ? @all_office_hours : @my_office_hours
+    
       render :ta_index
     else
       @office_hours = OfficeHour.with_filters(@days_to_show, @sort_by)

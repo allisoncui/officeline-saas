@@ -25,9 +25,9 @@
   <h1>Office Hours</h1>
 
   <% if @office_hours.present? %>
-  <p id="results-summary" class="ol-muted">
-    <%= pluralize(@office_hours.size, "result") %>
-  </p>
+    <p id="results-summary" class="ol-muted">
+      <%= pluralize(@office_hours.size, "result") %>
+    </p>
   <% else %>
     <p id="results-empty" class="ol-muted">No office hours match your filters.</p>
   <% end %>
@@ -35,7 +35,7 @@
   <% current_view = params[:view] == "calendar" ? "calendar" : "list" %>
   <%= hidden_field_tag :view, current_view, id: "hidden_view" %>
 
-  <div class="toggle-container">
+  <div class="toggle-container" style="margin-bottom: 20px;">
     <input type="checkbox"
            id="calendar_toggle"
            <%= "checked" if current_view == "calendar" %>
@@ -55,16 +55,35 @@
 <% if params[:view] == "calendar" %>
   <%= render "calendar" %>
 <% else %>
+  <!-- LIST VIEW -->
   <div id="office_hours" class="ol-list">
-    <% @office_hours.each do |office_hour| %>
-      <%= render office_hour %>
-      <p class="ol-actions">
-        <%= link_to "Show this office hour", office_hour %>
-      </p>
+    <% if @office_hours.present? %>
+      <% @office_hours.each do |oh| %>
+        <%= link_to office_hour_path(oh),
+            style: "text-decoration: none; color: inherit; display: block;" do %>
+          <div class="ol-card"
+               style="
+                 position: relative;
+                 margin-top: 12px;
+                 padding: 16px;
+                 border-radius: 10px;
+                 background: #f9fafb;
+                 cursor: pointer;
+                 transition: all 0.2s ease-in-out;
+                 border: 1px solid #e5e7eb;
+               "
+               onmouseover="this.style.background='#e0ecff'; this.style.transform='scale(1.01)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';"
+               onmouseout="this.style.background='#f9fafb'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
+            <p><strong>Course:</strong> <%= oh.course_name %></p>
+            <p><strong>Instructor:</strong> <%= oh.instructor %></p>
+            <p><strong>Day:</strong> <%= oh.day %></p>
+            <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
+            <p><strong>Location:</strong> <%= oh.location %></p>
+          </div>
+        <% end %>
+      <% end %>
+    <% else %>
+      <p class="ol-muted">No office hours available right now.</p>
     <% end %>
   </div>
 <% end %>
-
-<p class="ol-actions">
-  <%= link_to "New office hour", new_office_hour_path %>
-</p>
