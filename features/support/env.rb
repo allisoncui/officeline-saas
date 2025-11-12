@@ -8,6 +8,7 @@ SimpleCov.start 'rails'
 # files.
 
 require 'cucumber/rails'
+require 'factory_bot_rails'
 
 # To avoid confusion on missed migrations - use Rails 4 checker to ensure
 # all migrations applied
@@ -60,3 +61,18 @@ end
 # The :transaction strategy is faster, but might give you threading problems.
 # See https://github.com/cucumber/cucumber-rails/blob/master/features/choose_javascript_database_strategy.feature
 Cucumber::Rails::Database.javascript_strategy = :truncation
+
+# Include Devise test helpers for Capybara
+include Warden::Test::Helpers
+Warden.test_mode!
+
+# Sign in a user before each scenario
+Before do
+  @user = FactoryBot.create(:user, uni: 'testuser', role: 'student', password: 'password123', password_confirmation: 'password123')
+  login_as(@user, scope: :user)
+end
+
+# Clean up after each scenario
+After do
+  Warden.test_reset!
+end
