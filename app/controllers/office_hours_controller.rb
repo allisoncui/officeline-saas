@@ -1,5 +1,6 @@
 class OfficeHoursController < ApplicationController
   before_action :set_office_hour, only: %i[ show edit update destroy ]
+  before_action :authorize_ta_access, only: [:edit, :update, :destroy]
 
   # GET /office_hours or /office_hours.json
   def index
@@ -63,6 +64,7 @@ class OfficeHoursController < ApplicationController
   # POST /office_hours or /office_hours.json
   def create
     @office_hour = OfficeHour.new(office_hour_params)
+    @office_hour.course_name = current_user.course_name
     @office_hour.ta_uni = current_user.uni if current_user&.ta? # automatically assign TA UNI if logged in as TA
 
     respond_to do |format|
@@ -112,6 +114,13 @@ class OfficeHoursController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def office_hour_params
-      params.require(:office_hour).permit(:course_name, :instructor, :day, :start_time, :end_time, :location, :ta_uni)
+      params.require(:office_hour).permit(:instructor, :day, :start_time, :end_time, :location, :ta_uni)
+    end
+
+    def authorize_ta_access
+      @office_hour = OfficeHour.find(params[:id])
+      unless @office_hour.ta_uni == current_user.uni
+        redirect_to office_hours_path, alert: "You can only modify your own office hours."
+      end
     end
 end
