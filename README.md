@@ -10,6 +10,22 @@ Officeline is a SaaS application that centralizes office hours for students and 
 - Justin Francisco Rios (jfr2153)
 - Raul Hinojos (rh3128)
 
+## Setup and Installation
+1. Clone the repository
+   ```
+   git clone https://github.com/allisoncui/officeline-saas.git
+   ```
+2. Install dependencies
+   ```
+   gem install bundler
+   bundle install
+   ```
+3. Create and set up the database
+   ```
+   bundle exec rails db:create      # create the database
+   bundle exec rails db:migrate     # run database migrations to create tables
+   ```
+
 ## How to Run
 Run `bundle exec rails server -b 0.0.0.0` in root directory to start the web server.
 
