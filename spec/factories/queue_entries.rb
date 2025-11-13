@@ -1,9 +1,9 @@
 FactoryBot.define do
   factory :queue_entry do
-    office_hour { nil }
-    user { nil }
+    association :office_hour
+    association :user
     position { 1 }
-    joined_at { "2025-11-12 18:21:08" }
-    status { "MyString" }
+    joined_at { Time.current }
+    status { "waiting" }
   end
 end

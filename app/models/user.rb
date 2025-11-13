@@ -36,4 +36,5 @@ class User < ApplicationRecord
   end
   
   has_many :questions, dependent: :destroy
+  has_many :queue_entries, dependent: :destroy
 end

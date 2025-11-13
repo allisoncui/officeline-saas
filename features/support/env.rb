@@ -66,12 +66,6 @@ Cucumber::Rails::Database.javascript_strategy = :truncation
 include Warden::Test::Helpers
 Warden.test_mode!
 
-# Sign in a user before each scenario
-Before do
-  @user = FactoryBot.create(:user, uni: 'testuser', role: 'student', password: 'password123', password_confirmation: 'password123')
-  login_as(@user, scope: :user)
-end
-
 # Clean up after each scenario
 After do
   Warden.test_reset!

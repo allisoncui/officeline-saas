@@ -4,9 +4,9 @@ Feature: display list of office hours sorted by different criteria
   So that I can quickly browse office hours based on my preferences
   I want to see office hours sorted by course name, instructor, day, or start time
 
-Background: office hours have been added to database
-
-  Given the following office hours exist:
+Background: I am logged in as a student
+  Given a student user exists with UNI "student123" and password "password123"
+  And the following office hours exist:
   | course_name                    | instructor            | day       | start_time | end_time | location          |
   | Engineering SaaS               | Junfeng Yang          | Tuesday   | 3:00PM     | 5:00PM   | Zoom              |
   | Advanced Programming           | Jae Woo Lee           | Monday    | 1:00PM     | 3:00PM   | Pupin 301         |
@@ -20,6 +20,11 @@ Background: office hours have been added to database
   | Linear Algebra                 | George Dragomir       | Friday    | 12:00PM    | 2:00PM   | Math 312          |
 
   And I am on the office hours home page
+  When I follow "Sign in"
+  And I fill in "UNI" with "student123"
+  And I fill in "Password" with "password123"
+  And I press "Log in"
+  Then I should be on the office hours home page
   Then 10 seed office hours should exist
 
 Scenario: sort office hours alphabetically by course name

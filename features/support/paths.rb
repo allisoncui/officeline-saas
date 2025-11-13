@@ -15,6 +15,11 @@ module NavigationHelpers
 
     when /^the (office hours )?home\s?page$/ then '/office_hours'
     when /^the office hours page$/ then '/office_hours'
+    when /^the my classes page$/ then '/my_classes'
+    when /^the my questions page$/ then '/my_questions'
+    when /^the edit question page$/ then '/office_hours'  # Will be handled by specific step
+    when /^the sign in page$/ then '/users/sign_in'
+    when /^the sign up page$/ then '/users/sign_up'
 
     # Add more mappings here.
     # Here is an example that pulls values out of the Regexp:
