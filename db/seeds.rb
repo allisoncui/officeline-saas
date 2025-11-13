@@ -23,5 +23,13 @@ hours = [
 ]
 
 hours.each do |hour|
-  OfficeHour.create!(hour)
+  OfficeHour.find_or_create_by!(
+    course_name: hour[:course_name],
+    instructor: hour[:instructor],
+    day: hour[:day],
+    start_time: hour[:start_time],
+    end_time: hour[:end_time],
+    location: hour[:location],
+    ta_uni: hour[:ta_uni]
+  )
 end
