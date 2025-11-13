@@ -1,4 +1,6 @@
+<% if @office_hours.present? %>
 <h2>Class: <%= @office_hours.first&.course_name || current_user.course_name %></h2>
+<% end %>
 
 <!-- Tabs -->
 <div class="ol-tabs" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">

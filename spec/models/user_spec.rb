@@ -68,4 +68,18 @@ RSpec.describe User, type: :model do
       expect(user.uni).to eq('test123')
     end
   end
+
+  describe 'email attribute' do
+    it 'has email as an accessor' do
+      user = build(:user)
+      user.email = 'test@example.com'
+      expect(user.email).to eq('test@example.com')
+    end
+
+    it 'allows email to be set and retrieved' do
+      user = build(:user)
+      user.email = 'user@columbia.edu'
+      expect(user.email).to eq('user@columbia.edu')
+    end
+  end
 end

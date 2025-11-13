@@ -35,6 +35,14 @@ RSpec.describe EnrollmentsController, type: :controller do
         }.not_to change(Enrollment, :count)
       end
 
+      it 'handles already persisted enrollment' do
+        enrollment = create(:enrollment, user: student, office_hour: office_hour)
+        # Test the enrollment.persisted? branch
+        post :create, params: { office_hour_id: office_hour.id }
+        expect(response).to redirect_to(office_hours_path)
+        expect(flash[:notice]).to match(/saved to your profile/i)
+      end
+
       it 'handles save failure when enrollment cannot be saved' do
         # Stub OfficeHour.find to return our office_hour
         allow(OfficeHour).to receive(:find).with(office_hour.id.to_s).and_return(office_hour)
@@ -85,6 +93,33 @@ RSpec.describe EnrollmentsController, type: :controller do
     it 'handles non-existent enrollment gracefully' do
       delete :destroy, params: { office_hour_id: office_hour.id }
       expect(response).to redirect_to(office_hours_path)
+    end
+
+    it 'handles enrollment that is nil' do
+      # When find_by returns nil, the safe navigation operator should handle it
+      # This tests the line: enrollment&.destroy
+      allow(student.enrollments).to receive(:find_by).and_return(nil)
+      delete :destroy, params: { office_hour_id: office_hour.id }
+      expect(response).to redirect_to(office_hours_path)
+      expect(flash[:notice]).to be_present
+    end
+
+    it 'calls destroy on enrollment when it exists' do
+      enrollment = create(:enrollment, user: student, office_hour: office_hour)
+      expect {
+        delete :destroy, params: { office_hour_id: office_hour.id }
+      }.to change(Enrollment, :count).by(-1)
+    end
+  end
+
+  describe 'private methods' do
+    describe '#set_office_hour' do
+      before { sign_in student }
+
+      it 'finds the office hour by office_hour_id' do
+        post :create, params: { office_hour_id: office_hour.id }
+        expect(assigns(:office_hour)).to eq(office_hour)
+      end
     end
   end
 end

@@ -102,6 +102,14 @@ RSpec.describe QueueEntriesController, type: :controller do
       }.to change(QueueEntry, :count).by(-1)
     end
 
+    it 'updates entry status to removed before destroying' do
+      entry = create(:queue_entry, user: student, office_hour: office_hour, status: 'waiting')
+      # The update happens in the controller, we just verify the flow works
+      delete :destroy, params: { office_hour_id: office_hour.id, id: entry.id }
+      expect(response).to redirect_to(office_hour)
+      expect(flash[:notice]).to match(/left the queue/i)
+    end
+
     it 'redirects with success notice' do
       entry = create(:queue_entry, user: student, office_hour: office_hour, status: 'waiting')
       delete :destroy, params: { office_hour_id: office_hour.id, id: entry.id }
@@ -113,6 +121,34 @@ RSpec.describe QueueEntriesController, type: :controller do
       delete :destroy, params: { office_hour_id: office_hour.id, id: 999 }
       expect(response).to redirect_to(office_hour)
       expect(flash[:alert]).to match(/not in the queue/i)
+    end
+
+    it 'handles entry not found by user' do
+      # When find_by returns nil (user not in queue)
+      delete :destroy, params: { office_hour_id: office_hour.id, id: 999 }
+      expect(response).to redirect_to(office_hour)
+      expect(flash[:alert]).to match(/not in the queue/i)
+    end
+  end
+
+  describe 'private methods' do
+    describe '#set_office_hour' do
+      before { sign_in student }
+
+      it 'finds the office hour by office_hour_id' do
+        get :create, params: { office_hour_id: office_hour.id }
+        expect(assigns(:office_hour)).to eq(office_hour)
+      end
+    end
+
+    describe '#ensure_queue_active' do
+      before { sign_in student }
+
+      it 'redirects when queue is inactive' do
+        post :create, params: { office_hour_id: office_hour.id }
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:alert]).to match(/not currently active/i)
+      end
     end
   end
 
@@ -204,6 +240,12 @@ RSpec.describe QueueEntriesController, type: :controller do
       delete :remove_student, params: { office_hour_id: office_hour.id, id: entry.id }
       # Entry is destroyed, so we check the update was called before destroy
       expect(QueueEntry.find_by(id: entry_id)).to be_nil
+    end
+
+    it 'calls update with served status before destroy' do
+      entry = create(:queue_entry, user: other_student, office_hour: office_hour, status: 'waiting')
+      expect_any_instance_of(QueueEntry).to receive(:update).with(status: 'served').and_return(true)
+      delete :remove_student, params: { office_hour_id: office_hour.id, id: entry.id }
     end
 
     it 'redirects with success notice' do

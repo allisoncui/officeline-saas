@@ -150,6 +150,16 @@ RSpec.describe QuestionsController, type: :controller do
           question: { question_text: '' }
         }
         expect(response).to render_template('edit')
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns unprocessable_entity status on validation failure' do
+        patch :update, params: {
+          office_hour_id: office_hour.id,
+          id: question.id,
+          question: { question_text: '' }
+        }
+        expect(response).to have_http_status(:unprocessable_entity)
       end
     end
 
@@ -219,6 +229,27 @@ RSpec.describe QuestionsController, type: :controller do
         result = controller.send(:question_params)
         expect(result['question_text']).to eq('test')
         expect(result).to be_permitted
+      end
+    end
+
+    describe '#ensure_question_owner' do
+      let(:other_user) { create(:user) }
+      let(:other_question) { create(:question, office_hour: office_hour, user: other_user) }
+
+      it 'redirects when trying to update another user\'s question' do
+        patch :update, params: {
+          office_hour_id: office_hour.id,
+          id: other_question.id,
+          question: { question_text: 'Hacked' }
+        }
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:alert]).to match(/only edit or delete your own/i)
+      end
+
+      it 'redirects when trying to delete another user\'s question' do
+        delete :destroy, params: { office_hour_id: office_hour.id, id: other_question.id }
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:alert]).to match(/only edit or delete your own/i)
       end
     end
   end

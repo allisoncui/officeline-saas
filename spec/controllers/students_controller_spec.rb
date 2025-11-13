@@ -57,6 +57,37 @@ RSpec.describe StudentsController, type: :controller do
       expect(assigns(:saved_office_hours)).to include(monday_oh)
     end
 
+    it 'executes raw_days.keys when days is ActionController::Parameters' do
+      # This tests line 9-10: raw_days = raw_days.keys if raw_days.is_a?(ActionController::Parameters)
+      monday_oh = create(:office_hour, day: 'Monday')
+      create(:enrollment, user: student, office_hour: monday_oh)
+      # Use a hash that Rails will convert to ActionController::Parameters
+      get :show, params: { days: { 'Monday' => '1' } }
+      expect(assigns(:saved_office_hours)).to include(monday_oh)
+    end
+
+    it 'executes raw_days.keys when days is a Hash' do
+      # This tests line 10: raw_days.is_a?(Hash)
+      monday_oh = create(:office_hour, day: 'Monday')
+      create(:enrollment, user: student, office_hour: monday_oh)
+      hash_days = { 'Monday' => '1' }
+      get :show, params: { days: hash_days }
+      expect(assigns(:saved_office_hours)).to include(monday_oh)
+    end
+
+    it 'executes where(id: base_office_hours.pluck(:id)) line' do
+      # This tests line 31-32: .where(id: base_office_hours.pluck(:id))
+      oh1 = create(:office_hour, day: 'Monday')
+      oh2 = create(:office_hour, day: 'Tuesday')
+      create(:enrollment, user: student, office_hour: oh1)
+      # Don't enroll in oh2
+      
+      get :show
+      # Should only include oh1, not oh2
+      expect(assigns(:saved_office_hours)).to include(oh1)
+      expect(assigns(:saved_office_hours)).not_to include(oh2)
+    end
+
     it 'renders the show template' do
       get :show
       expect(response).to render_template('show')
@@ -93,6 +124,11 @@ RSpec.describe StudentsController, type: :controller do
     it 'renders the questions template' do
       get :questions
       expect(response).to render_template('questions')
+    end
+
+    it 'handles empty questions list' do
+      get :questions
+      expect(assigns(:my_questions)).to be_empty
     end
   end
 

@@ -69,6 +69,46 @@ RSpec.describe OfficeHour, type: :model do
         # So Monday (2:00PM) comes before Tuesday (1:00PM) comes before Wednesday (3:00PM)
         expect(results.map(&:day)).to eq(['Monday', 'Tuesday', 'Wednesday'])
       end
+
+      it 'handles days not in DAY_ORDER' do
+        saturday_oh = create(:office_hour, day: 'Saturday', start_time: '10:00AM')
+        results = OfficeHour.with_filters(nil, 'day')
+        # Saturday should come last (999 in DAY_ORDER)
+        expect(results.last.day).to eq('Saturday')
+      end
+    end
+
+    describe '.parse_time' do
+      it 'parses AM times correctly' do
+        expect(OfficeHour.send(:parse_time, '9:30AM')).to eq(9 * 60 + 30)
+        expect(OfficeHour.send(:parse_time, '12:00AM')).to eq(0) # midnight
+        expect(OfficeHour.send(:parse_time, '1:15AM')).to eq(1 * 60 + 15)
+      end
+
+      it 'parses PM times correctly' do
+        expect(OfficeHour.send(:parse_time, '1:30PM')).to eq(13 * 60 + 30)
+        expect(OfficeHour.send(:parse_time, '12:00PM')).to eq(12 * 60) # noon
+        expect(OfficeHour.send(:parse_time, '11:45PM')).to eq(23 * 60 + 45)
+      end
+
+      it 'handles blank time strings' do
+        expect(OfficeHour.send(:parse_time, '')).to eq(0)
+        expect(OfficeHour.send(:parse_time, nil)).to eq(0)
+      end
+
+      it 'handles invalid time formats' do
+        expect(OfficeHour.send(:parse_time, 'invalid')).to eq(0)
+        expect(OfficeHour.send(:parse_time, '25:00')).to eq(0)
+      end
+
+      it 'strips whitespace' do
+        expect(OfficeHour.send(:parse_time, '  2:00PM  ')).to eq(14 * 60)
+      end
+
+      it 'handles case insensitivity' do
+        expect(OfficeHour.send(:parse_time, '2:00pm')).to eq(14 * 60)
+        expect(OfficeHour.send(:parse_time, '2:00am')).to eq(2 * 60)
+      end
     end
   end
 
@@ -134,6 +174,18 @@ RSpec.describe OfficeHour, type: :model do
 
       it 'returns nil if user is not in queue' do
         expect(office_hour.user_queue_position(user)).to be_nil
+      end
+    end
+
+    describe '#queue_size' do
+      it 'returns the count of active queue entries' do
+        office_hour.start_queue!
+        create(:queue_entry, office_hour: office_hour, user: user, status: 'waiting')
+        other_user = create(:user)
+        create(:queue_entry, office_hour: office_hour, user: other_user, status: 'waiting')
+        create(:queue_entry, office_hour: office_hour, user: create(:user), status: 'served')
+        
+        expect(office_hour.queue_size).to eq(2)
       end
     end
   end
