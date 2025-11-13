@@ -12,15 +12,25 @@
     <%= f.label :role, "Role" %><br />
     <%= f.select :role, options_for_select([['Student', 'student'], ['TA', 'ta']], f.object.role),
                  { prompt: 'Select your role' },
-                 { onchange: 'this.form.submit();' } %>
+                 { id: 'user_role_edit', onchange: 'toggleCourseNameFieldEdit();' } %>
   </div>
 
-  <% if f.object.role == 'ta' %>
-    <div class="field">
-      <%= f.label :course_name, "Course Name" %><br />
-      <%= f.text_field :course_name, placeholder: "Enter your course name (e.g. Data Structures)" %>
-    </div>
-  <% end %>
+  <div class="field" id="course_name_field_edit" style="<%= 'display: none;' unless f.object.role == 'ta' %>">
+    <%= f.label :course_name, "Course Name" %><br />
+    <%= f.text_field :course_name, placeholder: "Enter your course name (e.g. Data Structures)" %>
+  </div>
+
+  <script>
+    function toggleCourseNameFieldEdit() {
+      var roleSelect = document.getElementById('user_role_edit');
+      var courseNameField = document.getElementById('course_name_field_edit');
+      if (roleSelect.value === 'ta') {
+        courseNameField.style.display = 'block';
+      } else {
+        courseNameField.style.display = 'none';
+      }
+    }
+  </script>
 
   <div class="field">
     <%= f.label :password %> <i>(leave blank if you don't want to change it)</i><br />
