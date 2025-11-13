@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   devise_for :users, controllers: {
-    registrations: 'users/registrations'
+    sessions: 'users/sessions',
+    registrations: 'users/registrations',
+    passwords: 'users/passwords'
   }
 
   get 'my_classes', to: 'students#show', as: :student_profile

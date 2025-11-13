@@ -4,6 +4,8 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  attr_accessor :email
+
   # Use uni instead of email for authentication
   validates :uni, presence: true, uniqueness: true
   validates :role, presence: true, inclusion: { in: %w[student ta] }
