@@ -31,6 +31,46 @@
       style: "margin-left: auto; color: #2563eb; text-decoration: none; font-weight: 500;" %>
 </div>
 
+<!-- Queue Section -->
+<div class="ol-card" style="margin-top: 24px; padding: 16px; border-radius: 10px; background: #fef3c7;">
+  <h3 class="ol-section-title">Office Hour Queue</h3>
+  
+  <%= render 'queue_section', office_hour: @office_hour %>
+</div>
+
+<!-- Auto-update script -->
+<script>
+  <% if @office_hour.queue_active? || current_user&.ta? %>
+    // Auto-update queue every 3 seconds
+    const updateInterval = setInterval(function() {
+      fetch('<%= queue_status_office_hour_path(@office_hour) %>', {
+        headers: {
+          'Accept': 'text/html',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.text();
+      })
+      .then(html => {
+        const queueContent = document.getElementById('queue-content');
+        if (queueContent) {
+          queueContent.innerHTML = html;
+        }
+      })
+      .catch(error => {
+        console.error('Error updating queue:', error);
+      });
+    }, 3000);
+
+    // Stop polling when user leaves the page
+    window.addEventListener('beforeunload', function() {
+      clearInterval(updateInterval);
+    });
+  <% end %>
+</script>
+
 <!-- Conditional Content for Students or TAs -->
 <% if current_user&.student? %>
   <!-- STUDENT VIEW: Submit Question -->

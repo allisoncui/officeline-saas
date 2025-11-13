@@ -295,3 +295,21 @@
   padding: 0;
   margin: 0;
 }
+
+.ol-btn-sm {
+  font-size: 0.875rem;
+  padding: 6px 12px;
+}
+
+.queue-position {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  background: #2563eb;
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  margin-right: 8px;
+}

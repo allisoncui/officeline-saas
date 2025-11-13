@@ -1,0 +1,26 @@
+class QueueEntry < ApplicationRecord
+  belongs_to :office_hour
+  belongs_to :user
+  
+  validates :user_id, uniqueness: { scope: :office_hour_id, message: "already in queue" }
+  validates :status, inclusion: { in: %w[waiting served removed] }
+  
+  scope :active, -> { where(status: 'waiting').order(:joined_at) }
+  scope :for_office_hour, ->(office_hour_id) { where(office_hour_id: office_hour_id) }
+  
+  before_create :set_joined_at
+  after_create :update_positions
+  after_destroy :update_positions
+  
+  private
+  
+  def set_joined_at
+    self.joined_at ||= Time.current
+  end
+  
+  def update_positions
+    office_hour.queue_entries.active.order(:joined_at).each_with_index do |entry, index|
+      entry.update_column(:position, index + 1)
+    end
+  end
+end

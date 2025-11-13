@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_12_152700) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_12_232213) do
   create_table "enrollments", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "office_hour_id", null: false
@@ -31,6 +31,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_152700) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "ta_uni"
+    t.boolean "queue_active", default: false
+    t.datetime "queue_started_at"
   end
 
   create_table "questions", force: :cascade do |t|
@@ -43,6 +45,20 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_152700) do
     t.index ["user_id"], name: "index_questions_on_user_id"
   end
 
+  create_table "queue_entries", force: :cascade do |t|
+    t.integer "office_hour_id", null: false
+    t.integer "user_id", null: false
+    t.integer "position"
+    t.datetime "joined_at"
+    t.string "status", default: "waiting"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["office_hour_id", "status"], name: "index_queue_entries_on_office_hour_id_and_status"
+    t.index ["office_hour_id", "user_id"], name: "index_queue_entries_on_office_hour_id_and_user_id", unique: true
+    t.index ["office_hour_id"], name: "index_queue_entries_on_office_hour_id"
+    t.index ["user_id"], name: "index_queue_entries_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "uni", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -50,9 +66,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_152700) do
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
     t.string "role"
+    t.string "course_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "course_name"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uni"], name: "index_users_on_uni", unique: true
   end
@@ -61,4 +77,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_152700) do
   add_foreign_key "enrollments", "users"
   add_foreign_key "questions", "office_hours"
   add_foreign_key "questions", "users"
+  add_foreign_key "queue_entries", "office_hours"
+  add_foreign_key "queue_entries", "users"
 end
