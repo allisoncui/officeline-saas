@@ -1,8 +1,58 @@
 <h2>Class: <%= @office_hours.first&.course_name || current_user.course_name %></h2>
 
-<div class="ol-tabs">
-  <%= link_to "My Hours", office_hours_path(view: "my"), class: @view == "my" ? "ol-btn active" : "ol-btn" %>
-  <%= link_to "All Hours", office_hours_path(view: "all"), class: @view == "all" ? "ol-btn active" : "ol-btn" %>
+<!-- Tabs -->
+<div class="ol-tabs" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+  <%= link_to "My Hours",
+      office_hours_path(view: "my"),
+      class: "ol-tab-btn #{'active' if @view == 'my'}",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #{@view == 'my' ? 'white' : '#2563eb'};
+        background: #{@view == 'my' ? '#2563eb' : 'white'};
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#{@view == 'my' ? '#1d4ed8' : '#eff6ff'}'",
+      onmouseout: "this.style.background='#{@view == 'my' ? '#2563eb' : 'white'}'" %>
+
+  <%= link_to "All Hours",
+      office_hours_path(view: 'all'),
+      class: "ol-tab-btn #{'active' if @view == 'all'}",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #{@view == 'all' ? 'white' : '#2563eb'};
+        background: #{@view == 'all' ? '#2563eb' : 'white'};
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#{@view == 'all' ? '#1d4ed8' : '#eff6ff'}'",
+      onmouseout: "this.style.background='#{@view == 'all' ? '#2563eb' : 'white'}'" %>
+</div>
+
+<!-- Add Button -->
+<div style="margin-bottom: 28px;">
+  <%= link_to "Add New Office Hour",
+      new_office_hour_path,
+      class: "ol-btn",
+      style: "
+        display: inline-block;
+        background: #16a34a;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.2s ease-in-out;
+        margin-top: 6px;
+      ",
+      onmouseover: "this.style.background='#15803d'",
+      onmouseout: "this.style.background='#16a34a'" %>
 </div>
 
 <% if @office_hours.present? %>
