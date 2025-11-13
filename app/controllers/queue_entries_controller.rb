@@ -82,9 +82,4 @@ class QueueEntriesController < ApplicationController
       redirect_to @office_hour, alert: 'The queue is not currently active.'
     end
   end
-
-  def queue_status
-    @office_hour = OfficeHour.find(params[:id])
-    render partial: 'queue_section', locals: { office_hour: @office_hour }
-  end
 end
