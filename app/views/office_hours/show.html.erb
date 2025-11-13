@@ -10,7 +10,7 @@
 
 <!-- TA Actions or Student Back Link -->
 <div class="ol-actions-bar" style="margin-top: 16px; display: flex; align-items: center; gap: 10px;">
-  <% if current_user&.ta? %>
+  <% if current_user&.ta? && @office_hour.ta_uni == current_user.uni %>
     <%= link_to "Edit Office Hour",
         edit_office_hour_path(@office_hour),
         class: "ol-btn",

@@ -57,26 +57,37 @@
 
 <% if @office_hours.present? %>
   <% @office_hours.each do |oh| %>
-    <%= link_to office_hour_path(oh), style: "text-decoration: none; color: inherit;" do %>
-      <div class="ol-card"
-          style="
-             position: relative;
+    <% is_mine = (oh.ta_uni == current_user.uni) %>
+    
+    <div style="margin-bottom: 12px;">
+      <%= link_to office_hour_path(oh),
+          style: "text-decoration: none; color: inherit; display: block;" do %>
+        <div class="ol-card"
+             style="
+               position: relative;
              margin-top: 12px;
-             padding: 16px;
-             border-radius: 10px;
+               padding: 16px;
+               border-radius: 10px;
              background: #f9fafb;
-             cursor: pointer;
-             transition: all 0.2s ease-in-out;
+               cursor: pointer;
+               transition: all 0.2s ease-in-out;
              border: 1px solid #e5e7eb;
-           "
+             "
            onmouseover="this.style.background='#e0ecff'; this.style.transform='scale(1.01)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';"
            onmouseout="this.style.background='#f9fafb'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
-        <p><strong>Day:</strong> <%= oh.day %></p>
-        <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
-        <p><strong>Location:</strong> <%= oh.location %></p>
-      </div>
-    <% end %>
+          <p><strong>Day:</strong> <%= oh.day %></p>
+          <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
+          <p><strong>Location:</strong> <%= oh.location %></p>
+
+          <% if is_mine %>
+            <span style="position: absolute; top: 10px; right: 14px; background: #2563eb; color: white; font-size: 12px; padding: 2px 8px; border-radius: 4px;">My Hour</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
   <% end %>
 <% else %>
   <p>You have no office hours scheduled yet.</p>
 <% end %>
+
+
