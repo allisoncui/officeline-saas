@@ -99,6 +99,11 @@ class OfficeHoursController < ApplicationController
     end
   end
 
+  def queue_status
+    @office_hour = OfficeHour.find(params[:id])
+    render partial: 'queue_section', locals: { office_hour: @office_hour }
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_office_hour
