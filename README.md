@@ -11,7 +11,11 @@ Officeline is a SaaS application that centralizes office hours for students and 
 - Raul Hinojos (rh3128)
 
 ## How to Run
-Run `bundle exec rails server -b 0.0.0.0` in root directory
+Run `bundle exec rails server -b 0.0.0.0` in root directory to start the web server.
+
+To run tests, use the following commands:
+* RSpec (unit & integration tests): `bundle exec rspec`
+* Cucumber (acceptance & feature tests): `bundle exec cucumber` 
 
 ## Heroku Link
 https://damp-spire-14128-74e1f1b69c9b.herokuapp.com/
