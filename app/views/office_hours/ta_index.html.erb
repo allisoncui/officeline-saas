@@ -1,9 +1,27 @@
 <% if @office_hours.present? %>
-<h2>Class: <%= @office_hours.first&.course_name || current_user.course_name %></h2>
+  <h2>Class: <%= @office_hours.first&.course_name || current_user.course_name %></h2>
+<% else %>
+  <h2>Class: <%= current_user.course_name %></h2>
 <% end %>
 
 <!-- Tabs -->
 <div class="ol-tabs" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+  <%= link_to "Dashboard",
+      office_hours_path(view: "dashboard"),
+      class: "ol-tab-btn #{'active' if @view == 'dashboard'}",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #{@view == 'dashboard' ? 'white' : '#2563eb'};
+        background: #{@view == 'dashboard' ? '#2563eb' : 'white'};
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#{@view == 'dashboard' ? '#1d4ed8' : '#eff6ff'}'",
+      onmouseout: "this.style.background='#{@view == 'dashboard' ? '#2563eb' : 'white'}'" %>
+
   <%= link_to "My Hours",
       office_hours_path(view: "my"),
       class: "ol-tab-btn #{'active' if @view == 'my'}",
@@ -37,59 +55,170 @@
       onmouseout: "this.style.background='#{@view == 'all' ? '#2563eb' : 'white'}'" %>
 </div>
 
-<!-- Add Button -->
-<div style="margin-bottom: 28px;">
-  <%= link_to "Add New Office Hour",
-      new_office_hour_path,
-      class: "ol-btn",
-      style: "
-        display: inline-block;
-        background: #16a34a;
-        color: white;
-        padding: 10px 18px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: background 0.2s ease-in-out;
-        margin-top: 6px;
-      ",
-      onmouseover: "this.style.background='#15803d'",
-      onmouseout: "this.style.background='#16a34a'" %>
-</div>
-
-<% if @office_hours.present? %>
-  <% @office_hours.each do |oh| %>
-    <% is_mine = (oh.ta_uni == current_user.uni) %>
+<!-- Dashboard View -->
+<% if @view == 'dashboard' %>
+  <div style="margin-bottom: 24px;">
+    <h3 style="margin-top: 0; margin-bottom: 16px; color: #0f172a;">Recent Office Hour Sessions</h3>
     
-    <div style="margin-bottom: 12px;">
-      <%= link_to office_hour_path(oh),
-          style: "text-decoration: none; color: inherit; display: block;" do %>
-        <div class="ol-card"
-             style="
-               position: relative;
-             margin-top: 12px;
-               padding: 16px;
-               border-radius: 10px;
-             background: #f9fafb;
-               cursor: pointer;
-               transition: all 0.2s ease-in-out;
-             border: 1px solid #e5e7eb;
-             "
-           onmouseover="this.style.background='#e0ecff'; this.style.transform='scale(1.01)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';"
-           onmouseout="this.style.background='#f9fafb'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
-          <p><strong>Day:</strong> <%= oh.day %></p>
-          <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
-          <p><strong>Location:</strong> <%= oh.location %></p>
-
-          <% if is_mine %>
-            <span style="position: absolute; top: 10px; right: 14px; background: #2563eb; color: white; font-size: 12px; padding: 2px 8px; border-radius: 4px;">My Hour</span>
-          <% end %>
+    <% if @sessions.present? %>
+      <% @sessions.each do |session| %>
+        <% oh = session.office_hour %>
+        
+        <div class="ol-card" style="padding: 20px; border-radius: 10px; background: #f9fafb; margin-bottom: 16px; border-left: 4px solid #2563eb;">
+          <!-- Office Hour Info -->
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+              <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 1.1rem;">
+                <%= oh.course_name %> - <%= oh.day %>
+              </h4>
+              <p style="margin: 0; color: #64748b; font-size: 0.9rem;">
+                <%= oh.start_time %> - <%= oh.end_time %> | <%= oh.location %>
+              </p>
+            </div>
+            
+            <% if session.active? %>
+              <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">
+                🟢 Active Now
+              </span>
+            <% end %>
+          </div>
+          
+          <!-- Session Info -->
+          <div style="background: white; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.9rem; color: #64748b;">Session Started:</span>
+              <span style="font-weight: 600; color: #0f172a;">
+                <%= session.started_at.strftime("%B %d, %Y at %I:%M %p") %>
+              </span>
+            </div>
+            
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-size: 0.9rem; color: #64748b;">Duration:</span>
+              <span style="font-weight: 600; color: #0f172a;">
+                <%= session.duration_minutes %> minutes
+                <% if session.active? %>
+                  <span style="color: #10b981;">(ongoing)</span>
+                <% end %>
+              </span>
+            </div>
+          </div>
+          
+          <!-- Analytics Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+            <!-- Students Served -->
+            <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 1.75rem; font-weight: 700; color: #059669; margin-bottom: 4px;">
+                <%= session.students_served %>
+              </div>
+              <div style="font-size: 0.85rem; color: #047857; font-weight: 500;">
+                Students Served
+              </div>
+            </div>
+            
+            <!-- Total Students -->
+            <div style="background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 1.75rem; font-weight: 700; color: #1d4ed8; margin-bottom: 4px;">
+                <%= session.total_students %>
+              </div>
+              <div style="font-size: 0.85rem; color: #1e40af; font-weight: 500;">
+                Total in Queue
+              </div>
+            </div>
+            
+            <!-- Service Rate -->
+            <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 1.75rem; font-weight: 700; color: #d97706; margin-bottom: 4px;">
+                <%= session.service_rate %>%
+              </div>
+              <div style="font-size: 0.85rem; color: #b45309; font-weight: 500;">
+                Service Rate
+              </div>
+            </div>
+            
+            <!-- Students Waiting (if active) -->
+            <% if session.active? && session.students_waiting > 0 %>
+              <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; text-align: center;">
+                <div style="font-size: 1.75rem; font-weight: 700; color: #dc2626; margin-bottom: 4px;">
+                  <%= session.students_waiting %>
+                </div>
+                <div style="font-size: 0.85rem; color: #b91c1c; font-weight: 500;">
+                  Still Waiting
+                </div>
+              </div>
+            <% end %>
+          </div>
+          
+          <!-- View Details Link -->
+          <div style="margin-top: 12px; text-align: right;">
+            <%= link_to "View Office Hour Details →",
+                office_hour_path(oh),
+                style: "color: #2563eb; text-decoration: none; font-weight: 500; font-size: 0.9rem;" %>
+          </div>
         </div>
       <% end %>
-    </div>
-  <% end %>
+    <% else %>
+      <div class="ol-card" style="padding: 24px; border-radius: 10px; background: #f9fafb; text-align: center;">
+        <p style="color: #64748b; margin: 0;">
+          No recent queue sessions found. Start a queue during office hours to see analytics here.
+        </p>
+      </div>
+    <% end %>
+  </div>
+
+<!-- My Hours / All Hours View -->
 <% else %>
-  <p>You have no office hours scheduled yet.</p>
+  <!-- Add Button -->
+  <div style="margin-bottom: 28px;">
+    <%= link_to "Add New Office Hour",
+        new_office_hour_path,
+        class: "ol-btn",
+        style: "
+          display: inline-block;
+          background: #16a34a;
+          color: white;
+          padding: 10px 18px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: 500;
+          transition: background 0.2s ease-in-out;
+          margin-top: 6px;
+        ",
+        onmouseover: "this.style.background='#15803d'",
+        onmouseout: "this.style.background='#16a34a'" %>
+  </div>
+
+  <% if @office_hours.present? %>
+    <% @office_hours.each do |oh| %>
+      <% is_mine = (oh.ta_uni == current_user.uni) %>
+      
+      <div style="margin-bottom: 12px;">
+        <%= link_to office_hour_path(oh),
+            style: "text-decoration: none; color: inherit; display: block;" do %>
+          <div class="ol-card"
+               style="
+                 position: relative;
+                 margin-top: 12px;
+                 padding: 16px;
+                 border-radius: 10px;
+                 background: #f9fafb;
+                 cursor: pointer;
+                 transition: all 0.2s ease-in-out;
+                 border: 1px solid #e5e7eb;
+               "
+               onmouseover="this.style.background='#e0ecff'; this.style.transform='scale(1.01)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';"
+               onmouseout="this.style.background='#f9fafb'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
+            <p><strong>Day:</strong> <%= oh.day %></p>
+            <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
+            <p><strong>Location:</strong> <%= oh.location %></p>
+
+            <% if is_mine %>
+              <span style="position: absolute; top: 10px; right: 14px; background: #2563eb; color: white; font-size: 12px; padding: 2px 8px; border-radius: 4px;">My Hour</span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% else %>
+    <p>You have no office hours scheduled yet.</p>
+  <% end %>
 <% end %>
-
-

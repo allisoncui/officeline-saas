@@ -1,6 +1,7 @@
 class QueueEntry < ApplicationRecord
   belongs_to :office_hour
   belongs_to :user
+  belongs_to :queue_session, optional: true
   
   validates :user_id, uniqueness: { scope: :office_hour_id, message: "already in queue" }
   validates :status, inclusion: { in: %w[waiting served removed] }
@@ -10,7 +11,7 @@ class QueueEntry < ApplicationRecord
   
   before_create :set_joined_at
   after_create :update_positions
-  after_destroy :update_positions
+  after_update :update_positions, if: :saved_change_to_status?
   
   private
   
@@ -19,8 +20,9 @@ class QueueEntry < ApplicationRecord
   end
   
   def update_positions
-    office_hour.queue_entries.active.order(:joined_at).each_with_index do |entry, index|
-      entry.update_column(:position, index + 1)
+    # Only reposition entries that are still waiting
+    office_hour.queue_entries.where(status: 'waiting').order(:joined_at).each_with_index do |entry, index|
+      entry.update_column(:position, index + 1) if entry.position != (index + 1)
     end
   end
 end

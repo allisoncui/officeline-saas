@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_12_232213) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_24_202055) do
   create_table "enrollments", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "office_hour_id", null: false
@@ -53,10 +53,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_232213) do
     t.string "status", default: "waiting"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "queue_session_id"
     t.index ["office_hour_id", "status"], name: "index_queue_entries_on_office_hour_id_and_status"
     t.index ["office_hour_id", "user_id"], name: "index_queue_entries_on_office_hour_id_and_user_id", unique: true
     t.index ["office_hour_id"], name: "index_queue_entries_on_office_hour_id"
+    t.index ["queue_session_id"], name: "index_queue_entries_on_queue_session_id"
     t.index ["user_id"], name: "index_queue_entries_on_user_id"
+  end
+
+  create_table "queue_sessions", force: :cascade do |t|
+    t.integer "office_hour_id", null: false
+    t.datetime "started_at"
+    t.datetime "ended_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["office_hour_id"], name: "index_queue_sessions_on_office_hour_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -78,5 +89,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_232213) do
   add_foreign_key "questions", "office_hours"
   add_foreign_key "questions", "users"
   add_foreign_key "queue_entries", "office_hours"
+  add_foreign_key "queue_entries", "queue_sessions"
   add_foreign_key "queue_entries", "users"
+  add_foreign_key "queue_sessions", "office_hours"
 end

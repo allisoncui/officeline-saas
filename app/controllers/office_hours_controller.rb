@@ -5,19 +5,19 @@ class OfficeHoursController < ApplicationController
   # GET /office_hours or /office_hours.json
   def index
     @all_days = OfficeHour.all_days
-  
+
     raw_days = params[:days]
-  
+
     raw_days = raw_days.keys if raw_days.is_a?(ActionController::Parameters) ||
                                 raw_days.is_a?(Hash)
-  
+
     if raw_days.present?
       @days_to_show = Array(raw_days).reject(&:blank?)
       session[:days] = @days_to_show
     else
       @days_to_show = session[:days] || @all_days
     end
-  
+
     sort_param = params[:sort_by].presence_in(%w[course_name instructor day])
 
     if sort_param
@@ -35,9 +35,22 @@ class OfficeHoursController < ApplicationController
       # fetch only this TA's own hours
       @my_office_hours = @all_office_hours.where(ta_uni: current_user.uni)
     
-      # toggle between 'my' and 'all'
-      @view = params[:view] == 'all' ? 'all' : 'my'
-      @office_hours = @view == 'all' ? @all_office_hours : @my_office_hours
+      # Handle view parameter: 'dashboard', 'my', or 'all'
+      @view = params[:view].presence_in(%w[dashboard my all]) || 'dashboard'
+      
+      if @view == 'my'
+        @office_hours = @my_office_hours
+      elsif @view == 'all'
+        @office_hours = @all_office_hours
+      else
+        # Dashboard view - collect analytics from queue sessions
+        @office_hours = nil
+        @sessions = QueueSession.joins(:office_hour)
+                                .where(office_hours: { course_name: current_user.course_name })
+                                .order(started_at: :desc)
+                                .limit(20)
+                                .includes(:office_hour, :queue_entries)
+      end
     
       render :ta_index
     else
@@ -45,7 +58,7 @@ class OfficeHoursController < ApplicationController
       @saved_office_hour_ids = current_user.saved_office_hours.pluck(:id) if current_user&.student?
       render :student_index
     end
-  
+
   end
 
   # GET /office_hours/1 or /office_hours/1.json

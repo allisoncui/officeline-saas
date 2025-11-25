@@ -9,7 +9,13 @@ class QueueEntriesController < ApplicationController
       return
     end
     
-    @queue_entry = @office_hour.queue_entries.build(user: current_user)
+    # Find the current active session
+    current_session = @office_hour.queue_sessions.find_by(ended_at: nil)
+    
+    @queue_entry = @office_hour.queue_entries.build(
+      user: current_user,
+      queue_session: current_session
+    )
     
     if @queue_entry.save
       redirect_to @office_hour, notice: "You've joined the queue at position #{@queue_entry.position}."
@@ -28,7 +34,7 @@ class QueueEntriesController < ApplicationController
     
     if @queue_entry
       @queue_entry.update(status: 'removed')
-      @queue_entry.destroy
+      # DON'T destroy - keep for analytics
       redirect_to @office_hour, notice: 'You have left the queue.'
     else
       redirect_to @office_hour, alert: 'You are not in the queue.'
@@ -57,7 +63,7 @@ class QueueEntriesController < ApplicationController
     redirect_to @office_hour, notice: 'Queue has been closed.'
   end
   
-  # TA removes a student from queue
+  # TA removes a student from queue (marks as served)
   def remove_student
     unless current_user&.ta?
       redirect_to @office_hour, alert: 'Only TAs can remove students from the queue.'
@@ -66,7 +72,7 @@ class QueueEntriesController < ApplicationController
     
     @queue_entry = @office_hour.queue_entries.find(params[:id])
     @queue_entry.update(status: 'served')
-    @queue_entry.destroy
+    # DON'T destroy - keep for analytics!
     
     redirect_to @office_hour, notice: 'Student removed from queue.'
   end
