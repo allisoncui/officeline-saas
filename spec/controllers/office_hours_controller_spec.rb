@@ -15,86 +15,95 @@ describe OfficeHoursController, type: :controller do
     end
 
     context 'as a student' do
-      it 'calls the model method that filters and sorts office hours' do
-        expect(OfficeHour).to receive(:with_filters)
-          .with(['Monday', 'Wednesday'], 'instructor')
-          .and_return(@fake_results)
-        get :index, params: { days: { 'Monday' => '1', 'Wednesday' => '1' }, sort_by: 'instructor' }
-      end
-
-      it 'stores the selected sort parameter in the session and assigns @sort_by' do
-        get :index, params: { sort_by: 'instructor' }
-        expect(session[:sort_by]).to eq('instructor')
-        expect(assigns(:sort_by)).to eq('instructor')
-      end
-
-      it 'stores selected days in the session and assigns @days_to_show' do
-        get :index, params: { days: { 'Monday' => '1', 'Tuesday' => '1' } }
-        expect(session[:days]).to include('Monday', 'Tuesday')
-        expect(assigns(:days_to_show)).to include('Monday', 'Tuesday')
-      end
-
-      it 'handles days as ActionController::Parameters' do
-        # Use a hash that Rails will convert to ActionController::Parameters
-        get :index, params: { days: { 'Monday' => '1', 'Tuesday' => '1' } }
-        expect(assigns(:days_to_show)).to include('Monday', 'Tuesday')
-      end
-
-      it 'handles days as a plain Hash' do
-        controller.params = ActionController::Parameters.new(days: { 'Monday' => '1' })
-        allow(controller.params[:days]).to receive(:is_a?).with(ActionController::Parameters).and_return(false)
-        allow(controller.params[:days]).to receive(:is_a?).with(Hash).and_return(true)
-        allow(controller.params[:days]).to receive(:keys).and_return(['Monday'])
+      it 'groups office hours by course_name' do
+        oh1 = create(:office_hour, course_name: 'Engineering SaaS')
+        oh2 = create(:office_hour, course_name: 'Engineering SaaS')
+        oh3 = create(:office_hour, course_name: 'Math 101')
+        
         get :index
-        expect(assigns(:days_to_show)).to include('Monday')
+        expect(assigns(:office_hours_by_course)).to have_key('Engineering SaaS')
+        expect(assigns(:office_hours_by_course)).to have_key('Math 101')
+        expect(assigns(:office_hours_by_course)['Engineering SaaS']).to include(oh1, oh2)
+        expect(assigns(:office_hours_by_course)['Math 101']).to include(oh3)
       end
 
-      it 'executes raw_days.keys when days is ActionController::Parameters' do
-        # This tests line 11: raw_days = raw_days.keys if raw_days.is_a?(ActionController::Parameters)
-        allow(OfficeHour).to receive(:with_filters).and_return(@fake_results)
-        # Use a hash that Rails will convert to ActionController::Parameters
-        get :index, params: { days: { 'Monday' => '1', 'Tuesday' => '1' } }
-        expect(assigns(:days_to_show)).to include('Monday', 'Tuesday')
-      end
-
-      it 'executes raw_days.keys when days is a Hash' do
-        # This tests line 12: raw_days.is_a?(Hash)
-        allow(OfficeHour).to receive(:with_filters).and_return(@fake_results)
-        hash_days = { 'Monday' => '1', 'Tuesday' => '1' }
-        get :index, params: { days: hash_days }
-        expect(assigns(:days_to_show)).to include('Monday', 'Tuesday')
-      end
-
-      it 'uses all days and default sort when no params are provided' do
-        allow(OfficeHour).to receive(:all_days).and_return(%w[Monday Tuesday Wednesday])
-        allow(OfficeHour).to receive(:with_filters).and_return(@fake_results)
+      it 'assigns saved_class_names' do
+        user.update(saved_classes: ['Engineering SaaS'])
         get :index
-        expect(assigns(:days_to_show)).to eq(%w[Monday Tuesday Wednesday])
-        expect(assigns(:sort_by)).to eq('course_name')
+        expect(assigns(:saved_class_names)).to include('Engineering SaaS')
+      end
+
+      it 'filters office hours by search term' do
+        oh1 = create(:office_hour, course_name: 'Engineering SaaS', instructor: 'Dr. Smith')
+        oh2 = create(:office_hour, course_name: 'Math 101', instructor: 'Dr. Jones')
+        oh3 = create(:office_hour, course_name: 'Physics', location: 'Engineering Building')
+        
+        get :index, params: { search: 'Engineering' }
+        office_hours = assigns(:office_hours)
+        expect(office_hours).to include(oh1, oh3)
+        expect(office_hours).not_to include(oh2)
+      end
+
+      it 'searches by course_name' do
+        oh1 = create(:office_hour, course_name: 'Engineering SaaS')
+        oh2 = create(:office_hour, course_name: 'Math 101')
+        
+        get :index, params: { search: 'Engineering' }
+        expect(assigns(:office_hours)).to include(oh1)
+        expect(assigns(:office_hours)).not_to include(oh2)
+      end
+
+      it 'searches by instructor' do
+        oh1 = create(:office_hour, instructor: 'Dr. Smith')
+        oh2 = create(:office_hour, instructor: 'Dr. Jones')
+        
+        get :index, params: { search: 'Smith' }
+        expect(assigns(:office_hours)).to include(oh1)
+        expect(assigns(:office_hours)).not_to include(oh2)
+      end
+
+      it 'searches by location' do
+        oh1 = create(:office_hour, location: 'Zoom')
+        oh2 = create(:office_hour, location: 'Room 301')
+        
+        get :index, params: { search: 'Zoom' }
+        expect(assigns(:office_hours)).to include(oh1)
+        expect(assigns(:office_hours)).not_to include(oh2)
+      end
+
+      it 'performs case-insensitive search' do
+        oh1 = create(:office_hour, course_name: 'Engineering SaaS')
+        
+        get :index, params: { search: 'engineering' }
+        expect(assigns(:office_hours)).to include(oh1)
+      end
+
+      it 'handles partial matches' do
+        oh1 = create(:office_hour, course_name: 'Engineering SaaS')
+        
+        get :index, params: { search: 'Engineer' }
+        expect(assigns(:office_hours)).to include(oh1)
+      end
+
+      it 'returns all office hours when search is empty' do
+        oh1 = create(:office_hour)
+        oh2 = create(:office_hour)
+        
+        get :index, params: { search: '' }
+        expect(assigns(:office_hours).count).to eq(2)
+      end
+
+      it 'returns all office hours when search param is not present' do
+        oh1 = create(:office_hour)
+        oh2 = create(:office_hour)
+        
+        get :index
+        expect(assigns(:office_hours).count).to eq(2)
+      end
+
+      it 'renders student_index template' do
+        get :index
         expect(response).to render_template('student_index')
-      end
-
-      it 'assigns saved office hour IDs' do
-        office_hour = create(:office_hour)
-        create(:enrollment, user: user, office_hour: office_hour)
-        allow(OfficeHour).to receive(:with_filters).and_return(@fake_results)
-        get :index
-        expect(assigns(:saved_office_hour_ids)).to include(office_hour.id)
-      end
-
-      describe 'after valid filter' do
-        before :each do
-          allow(OfficeHour).to receive(:with_filters).and_return(@fake_results)
-          get :index, params: { days: { 'Monday' => '1', 'Wednesday' => '1' }, sort_by: 'instructor' }
-        end
-
-        it 'selects the index template for rendering' do
-          expect(response).to render_template('student_index')
-        end
-
-        it 'makes the filtered office hours available to that template' do
-          expect(assigns(:office_hours)).to eq(@fake_results)
-        end
       end
     end
 
@@ -432,18 +441,16 @@ describe OfficeHoursController, type: :controller do
     end
 
     context 'as a student with nil current_user check' do
-      it 'handles saved_office_hour_ids when user is student' do
-        office_hour = create(:office_hour)
-        create(:enrollment, user: user, office_hour: office_hour)
-        allow(OfficeHour).to receive(:with_filters).and_return([office_hour])
+      it 'handles saved_class_names when user is student' do
+        user.update(saved_classes: ['Engineering SaaS'])
+        create(:office_hour, course_name: 'Engineering SaaS')
         get :index
-        expect(assigns(:saved_office_hour_ids)).to include(office_hour.id)
+        expect(assigns(:saved_class_names)).to include('Engineering SaaS')
       end
 
       it 'handles when current_user is nil' do
         sign_out user
         allow(controller).to receive(:current_user).and_return(nil)
-        allow(OfficeHour).to receive(:with_filters).and_return([])
         get :index
         expect(response).to redirect_to(new_user_session_path)
       end

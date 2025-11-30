@@ -1,0 +1,170 @@
+<!-- Tabs -->
+<div class="ol-tabs" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+  <%= link_to "Home",
+      office_hours_path,
+      class: "ol-tab-btn",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #2563eb;
+        background: white;
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#eff6ff'",
+      onmouseout: "this.style.background='white'" %>
+
+  <%= link_to "My Classes",
+      student_profile_path,
+      class: "ol-tab-btn",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #2563eb;
+        background: white;
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#eff6ff'",
+      onmouseout: "this.style.background='white'" %>
+
+  <%= link_to "My Hours",
+      student_my_hours_path,
+      class: "ol-tab-btn active",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: white;
+        background: #2563eb;
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#1d4ed8'",
+      onmouseout: "this.style.background='#2563eb'" %>
+
+  <%= link_to "My Questions",
+      student_questions_path,
+      class: "ol-tab-btn",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #2563eb;
+        background: white;
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#eff6ff'",
+      onmouseout: "this.style.background='white'" %>
+</div>
+
+<%= form_tag student_my_hours_path, method: :get, id: 'days_form', local: true, class: "ol-controls" do %>
+  <div class="ol-row">
+    <span class="ol-label">Include:</span>
+    <% @all_days.each do |day| %>
+      <label class="ol-check">
+        <%= check_box_tag "days[#{day}]", "1", @days_to_show.include?(day), class: 'form-check-input' %>
+        <span><%= day %></span>
+      </label>
+    <% end %>
+  </div>
+
+  <div class="ol-row">
+    <label class="ol-label" for="sort_by">Sort by:</label>
+    <%= select_tag :sort_by,
+                   options_for_select([["Course", "course_name"],
+                                       ["Instructor", "instructor"],
+                                       ["Day & Time", "day"]], @sort_by),
+                   id: "sort_by",
+                   class: "ol-select" %>
+
+    <%= submit_tag 'Refresh', id: 'days_submit', class: 'ol-btn' %>
+    <%= link_to "Clear filters", student_my_hours_path, class: "ol-link" %>
+  </div>
+
+  <h1 class="ol-title">My Selected Office Hours</h1>
+
+  <% if @my_office_hours.present? %>
+    <p id="results-summary" class="ol-muted" style="margin-bottom: 16px;">
+      <%= pluralize(@my_office_hours.size, "office hour") %> selected
+    </p>
+  <% else %>
+    <p id="results-empty" class="ol-muted" style="margin-bottom: 16px;">No office hours match your filters.</p>
+  <% end %>
+
+  <% current_view = params[:view] == "calendar" ? "calendar" : "list" %>
+  <%= hidden_field_tag :view, current_view, id: "hidden_view" %>
+
+  <div class="toggle-container" style="margin-bottom: 20px;">
+    <input type="checkbox"
+           id="calendar_toggle"
+           <%= "checked" if current_view == "calendar" %>
+           onchange="
+             const hv = document.getElementById('hidden_view');
+             hv.value = this.checked ? 'calendar' : 'list';
+             this.form.submit();
+           ">
+    <label for="calendar_toggle" class="toggle-label">
+      <span class="toggle-option list">List</span>
+      <span class="toggle-option calendar">Calendar</span>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+<% end %>
+
+<% if params[:view] == "calendar" %>
+  <% @office_hours = @my_office_hours %>
+  <%= render "office_hours/calendar" %>
+<% else %>
+  <!-- LIST VIEW -->
+  <div class="ol-list">
+    <% if @my_office_hours.present? %>
+      <% @my_office_hours.each do |oh| %>
+        <div class="ol-card ol-card-hover ol-card-stack ol-card-saved">
+          <div class="ol-card-header">
+            <span class="ol-tag">Selected</span>
+            <%= button_to 'Remove', office_hour_enrollment_path(oh),
+                          method: :delete,
+                          class: 'ol-btn ol-btn-outline',
+                          data: { turbo: false } %>
+          </div>
+          <%= link_to office_hour_path(oh), class: 'ol-card-link-area' do %>
+            <span class="sr-only">Show this office hour</span>
+            <div class="ol-card-content">
+              <h3 class="ol-card-title"><%= oh.course_name %></h3>
+              <p class="ol-card-instructor"><%= oh.instructor %></p>
+              <div class="ol-card-details">
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">📅</span>
+                  <span><%= oh.day %></span>
+                </div>
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">🕐</span>
+                  <span><%= oh.start_time %> - <%= oh.end_time %></span>
+                </div>
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">📍</span>
+                  <span><%= oh.location %></span>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="ol-card">
+        <p style="margin: 0; color: #64748b;">
+          You haven't selected any office hours yet. Go to "My Classes" and add office hours to this list.
+        </p>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+

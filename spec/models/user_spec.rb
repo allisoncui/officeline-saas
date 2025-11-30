@@ -82,4 +82,79 @@ RSpec.describe User, type: :model do
       expect(user.email).to eq('user@columbia.edu')
     end
   end
+
+  describe 'saved_classes' do
+    let(:user) { create(:user) }
+
+    describe '#saved_class?' do
+      it 'returns true when course is saved' do
+        user.update(saved_classes: ['Engineering SaaS', 'Math 101'])
+        expect(user.saved_class?('Engineering SaaS')).to be true
+      end
+
+      it 'returns false when course is not saved' do
+        user.update(saved_classes: ['Engineering SaaS'])
+        expect(user.saved_class?('Math 101')).to be false
+      end
+
+      it 'returns false when saved_classes is empty' do
+        user.update(saved_classes: [])
+        expect(user.saved_class?('Engineering SaaS')).to be false
+      end
+    end
+
+    describe '#add_saved_class' do
+      it 'adds a new class to saved_classes' do
+        user.update(saved_classes: [])
+        user.add_saved_class('Engineering SaaS')
+        expect(user.saved_classes).to include('Engineering SaaS')
+      end
+
+      it 'does not add duplicate classes' do
+        user.update(saved_classes: ['Engineering SaaS'])
+        user.add_saved_class('Engineering SaaS')
+        expect(user.saved_classes.count('Engineering SaaS')).to eq(1)
+      end
+
+      it 'preserves existing classes when adding new one' do
+        user.update(saved_classes: ['Math 101'])
+        user.add_saved_class('Engineering SaaS')
+        expect(user.saved_classes).to include('Math 101', 'Engineering SaaS')
+      end
+    end
+
+    describe '#remove_saved_class' do
+      it 'removes a class from saved_classes' do
+        user.update(saved_classes: ['Engineering SaaS', 'Math 101'])
+        user.remove_saved_class('Engineering SaaS')
+        expect(user.saved_classes).not_to include('Engineering SaaS')
+        expect(user.saved_classes).to include('Math 101')
+      end
+
+      it 'does nothing if class is not in saved_classes' do
+        user.update(saved_classes: ['Math 101'])
+        user.remove_saved_class('Engineering SaaS')
+        expect(user.saved_classes).to eq(['Math 101'])
+      end
+    end
+
+    describe '#saved_class_office_hours' do
+      it 'returns office hours for saved classes' do
+        oh1 = create(:office_hour, course_name: 'Engineering SaaS')
+        oh2 = create(:office_hour, course_name: 'Math 101')
+        oh3 = create(:office_hour, course_name: 'Physics')
+        
+        user.update(saved_classes: ['Engineering SaaS', 'Math 101'])
+        office_hours = user.saved_class_office_hours
+        
+        expect(office_hours).to include(oh1, oh2)
+        expect(office_hours).not_to include(oh3)
+      end
+
+      it 'returns empty when no classes are saved' do
+        user.update(saved_classes: [])
+        expect(user.saved_class_office_hours).to be_empty
+      end
+    end
+  end
 end

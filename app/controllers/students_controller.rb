@@ -2,6 +2,16 @@ class StudentsController < ApplicationController
   before_action :ensure_student
 
   def show
+    # Show saved classes with all office hours for each class
+    @saved_class_names = current_user.saved_classes
+    @classes_with_office_hours = {}
+    
+    @saved_class_names.each do |course_name|
+      @classes_with_office_hours[course_name] = OfficeHour.where(course_name: course_name).order(:day, :start_time)
+    end
+  end
+
+  def my_hours
     @all_days = OfficeHour.all_days
     
     # Handle day filtering
@@ -11,9 +21,9 @@ class StudentsController < ApplicationController
     
     if raw_days.present?
       @days_to_show = Array(raw_days).reject(&:blank?)
-      session[:my_classes_days] = @days_to_show
+      session[:my_hours_days] = @days_to_show
     else
-      @days_to_show = session[:my_classes_days] || @all_days
+      @days_to_show = session[:my_hours_days] || @all_days
     end
     
     # Handle sorting
@@ -21,15 +31,37 @@ class StudentsController < ApplicationController
     
     if sort_param
       @sort_by = sort_param
-      session[:my_classes_sort_by] = @sort_by
+      session[:my_hours_sort_by] = @sort_by
     else
-      @sort_by = session[:my_classes_sort_by] || "course_name"
+      @sort_by = session[:my_hours_sort_by] || "course_name"
     end
     
-    # Get saved office hours and apply filters
+    # Get selected office hours and apply filters
     base_office_hours = current_user.saved_office_hours.includes(:questions)
-    @saved_office_hours = OfficeHour.with_filters(@days_to_show, @sort_by)
-                                      .where(id: base_office_hours.pluck(:id))
+    @my_office_hours = OfficeHour.with_filters(@days_to_show, @sort_by)
+                                 .where(id: base_office_hours.pluck(:id))
+  end
+
+  def save_class
+    course_name = params[:course_name]
+    
+    if course_name.present?
+      current_user.add_saved_class(course_name)
+      redirect_back fallback_location: office_hours_path, notice: "Class '#{course_name}' saved to My Classes."
+    else
+      redirect_back fallback_location: office_hours_path, alert: 'Could not save class.'
+    end
+  end
+
+  def remove_class
+    course_name = params[:course_name]
+    
+    if course_name.present?
+      current_user.remove_saved_class(course_name)
+      redirect_back fallback_location: student_profile_path, notice: "Class '#{course_name}' removed from My Classes."
+    else
+      redirect_back fallback_location: student_profile_path, alert: 'Could not remove class.'
+    end
   end
 
   def questions

@@ -1,83 +1,132 @@
-<%= form_tag student_profile_path, method: :get, id: 'days_form', local: true, class: "ol-controls" do %>
-  <div class="ol-row">
-    <span class="ol-label">Include:</span>
-    <% @all_days.each do |day| %>
-      <label class="ol-check">
-        <%= check_box_tag "days[#{day}]", "1", @days_to_show.include?(day), class: 'form-check-input' %>
-        <span><%= day %></span>
-      </label>
-    <% end %>
-  </div>
+<!-- Tabs -->
+<div class="ol-tabs" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+  <%= link_to "Home",
+      office_hours_path,
+      class: "ol-tab-btn",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #2563eb;
+        background: white;
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#eff6ff'",
+      onmouseout: "this.style.background='white'" %>
 
-  <div class="ol-row">
-    <label class="ol-label" for="sort_by">Sort by:</label>
-    <%= select_tag :sort_by,
-                   options_for_select([["Course", "course_name"],
-                                       ["Instructor", "instructor"],
-                                       ["Day & Time", "day"]], @sort_by),
-                   id: "sort_by",
-                   class: "ol-select" %>
+  <%= link_to "My Classes",
+      student_profile_path,
+      class: "ol-tab-btn active",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: white;
+        background: #2563eb;
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#1d4ed8'",
+      onmouseout: "this.style.background='#2563eb'" %>
 
-    <%= submit_tag 'Refresh', id: 'days_submit', class: 'ol-btn' %>
-    <%= link_to "Clear filters", student_profile_path, class: "ol-link" %>
-  </div>
-<% end %>
+  <%= link_to "My Hours",
+      student_my_hours_path,
+      class: "ol-tab-btn",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #2563eb;
+        background: white;
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#eff6ff'",
+      onmouseout: "this.style.background='white'" %>
+
+  <%= link_to "My Questions",
+      student_questions_path,
+      class: "ol-tab-btn",
+      style: "
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+        color: #2563eb;
+        background: white;
+        transition: all 0.2s ease;
+      ",
+      onmouseover: "this.style.background='#eff6ff'",
+      onmouseout: "this.style.background='white'" %>
+</div>
 
 <h1 class="ol-title">My Saved Classes</h1>
 
-<% if @saved_office_hours.any? %>
+<% if @classes_with_office_hours.any? %>
   <p id="results-summary" class="ol-muted" style="margin-bottom: 16px;">
-    <%= pluralize(@saved_office_hours.size, "saved class") %>
+    <%= pluralize(@saved_class_names.size, "saved class") %>
   </p>
-<% else %>
-  <p id="results-empty" class="ol-muted" style="margin-bottom: 16px;">
-    <% if current_user.saved_office_hours.any? %>
-      No saved classes match your filters.
-    <% else %>
-      You haven't saved any classes yet. Head back to the office hours list and tap "Save to My Classes."
-    <% end %>
-  </p>
-<% end %>
-
-<% if @saved_office_hours.any? %>
-  <div class="ol-list">
-    <% @saved_office_hours.each do |oh| %>
-      <div class="ol-card ol-card-hover ol-card-stack ol-card-saved">
-        <div class="ol-card-header">
-          <span class="ol-tag">Saved</span>
-          <%= button_to 'Remove', office_hour_enrollment_path(oh),
-                        method: :delete,
-                        class: 'ol-btn ol-btn-outline',
-                        data: { turbo: false } %>
-        </div>
-        <%= link_to office_hour_path(oh), class: 'ol-card-link-area' do %>
-          <span class="sr-only">Show this office hour</span>
-          <div class="ol-card-content">
-            <h3 class="ol-card-title"><%= oh.course_name %></h3>
-            <p class="ol-card-instructor"><%= oh.instructor %></p>
-            <div class="ol-card-details">
-              <div class="ol-card-detail-item">
-                <span class="ol-card-detail-label">📅</span>
-                <span><%= oh.day %></span>
+  
+  <% @classes_with_office_hours.each do |course_name, office_hours| %>
+    <div class="ol-card" style="margin-bottom: 24px; padding: 20px;">
+      <div class="ol-card-header" style="margin-bottom: 16px;">
+        <h2 style="margin: 0; font-size: 1.5rem; color: #0f172a;"><%= course_name %></h2>
+        <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.95rem;">
+          <%= office_hours.first.instructor %>
+        </p>
+        <%= button_to 'Remove Class', remove_class_path(course_name: course_name),
+                      method: :delete,
+                      class: 'ol-btn ol-btn-outline',
+                      style: 'margin-top: 8px;',
+                      data: { turbo: false } %>
+      </div>
+      
+      <h3 style="margin: 16px 0 12px 0; font-size: 1.1rem; color: #0f172a;">Available Office Hours:</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+        <% office_hours.each do |oh| %>
+          <% already_in_my_hours = current_user.saved_office_hours.include?(oh) %>
+          <div class="ol-card" style="padding: 12px; position: relative;">
+            <%= link_to office_hour_path(oh), class: "ol-card-link-area", style: "text-decoration: none;" do %>
+              <div class="ol-card-details">
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">📅</span>
+                  <span><%= oh.day %></span>
+                </div>
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">🕐</span>
+                  <span><%= oh.start_time %> - <%= oh.end_time %></span>
+                </div>
+                <div class="ol-card-detail-item">
+                  <span class="ol-card-detail-label">📍</span>
+                  <span><%= oh.location %></span>
+                </div>
               </div>
-              <div class="ol-card-detail-item">
-                <span class="ol-card-detail-label">🕐</span>
-                <span><%= oh.start_time %> - <%= oh.end_time %></span>
-              </div>
-              <div class="ol-card-detail-item">
-                <span class="ol-card-detail-label">📍</span>
-                <span><%= oh.location %></span>
-              </div>
+            <% end %>
+            <div style="margin-top: 8px;">
+              <% if already_in_my_hours %>
+                <span class="ol-tag" style="font-size: 0.75rem;">In My Hours</span>
+              <% else %>
+                <%= button_to 'Add to My Hours', office_hour_enrollment_path(oh),
+                              method: :post,
+                              class: 'ol-btn',
+                              style: 'padding: 4px 10px; font-size: 0.85rem;',
+                              data: { turbo: false } %>
+              <% end %>
             </div>
           </div>
         <% end %>
       </div>
-    <% end %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="ol-card">
+    <p style="margin: 0; color: #64748b;">
+      You haven't saved any classes yet. Head back to Home and tap "Save Class" on a class you're interested in.
+    </p>
   </div>
 <% end %>
-
-<div style="text-align: right; margin-top: 32px;">
-  <%= link_to "← Back to Office Hours", office_hours_path, 
-      class: "ol-btn ol-btn-outline",
-      style: "text-decoration: none; padding: 6px 12px;" %>
-</div>

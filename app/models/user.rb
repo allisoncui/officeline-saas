@@ -37,4 +37,26 @@ class User < ApplicationRecord
   
   has_many :questions, dependent: :destroy
   has_many :queue_entries, dependent: :destroy
+  
+  # Serialize saved_classes as an array of course names
+  serialize :saved_classes, coder: JSON, type: Array
+  
+  # Helper methods for saved classes
+  def saved_class?(course_name)
+    saved_classes.include?(course_name)
+  end
+  
+  def add_saved_class(course_name)
+    self.saved_classes = (saved_classes + [course_name]).uniq
+    save
+  end
+  
+  def remove_saved_class(course_name)
+    self.saved_classes = saved_classes - [course_name]
+    save
+  end
+  
+  def saved_class_office_hours
+    OfficeHour.where(course_name: saved_classes)
+  end
 end
