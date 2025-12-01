@@ -55,7 +55,7 @@ Background: I am logged in as a student
     And I press "Submit Question"
     Then I should see "Question submitted successfully!"
 
-    When I click "Back to office hours"
+    When I click "Back to Office Hours"
     And I click "Show this office hour" for "Data Structures"
     Then I should be viewing the office hour details for course "Data Structures"
     And I should see "No questions submitted yet. Be the first to ask!"

@@ -8,7 +8,7 @@ class Question < ApplicationRecord
     ['Concept Clarification', 'concept'],
     ['Project Help', 'project'],
     ['Exam Prep', 'exam'],
-    ['General Question', 'general']
+    ['General', 'general']
   ].freeze
   
   validates :question_text, presence: true

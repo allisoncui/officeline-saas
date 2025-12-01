@@ -313,3 +313,9 @@
   font-weight: bold;
   margin-right: 8px;
 }
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 12px;
+}

@@ -95,9 +95,9 @@ Given(/I am viewing the office hour details for course "(.*)"/) do |course_name|
   expect(page).to have_content(course_name)
 end
 
-When(/I click "Back to office hours"/) do
-  if page.has_link?('Back to office hours')
-    click_link('Back to office hours')
+When(/I click "Back to Office Hours"/) do
+  if page.has_link?('Back to Office Hours')
+    click_link('Back to Office Hours')
   else
     visit office_hours_path
   end

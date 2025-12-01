@@ -49,7 +49,7 @@ Feature: student dashboard
     And I follow "Show this office hour" for "Math 101"
     When I fill in "question_question_text" with "How do I solve quadratic equations?"
     And I press "Submit Question"
-    When I click "Back to office hours"
+    When I click "Back to Office Hours"
     And I follow "My Questions"
     Then I should be on the my questions page
     And I should see "My Submitted Questions"

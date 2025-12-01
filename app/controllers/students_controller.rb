@@ -36,10 +36,27 @@ class StudentsController < ApplicationController
       @sort_by = session[:my_hours_sort_by] || "course_name"
     end
     
-    # Get selected office hours and apply filters
-    base_office_hours = current_user.saved_office_hours.includes(:questions)
-    @my_office_hours = OfficeHour.with_filters(@days_to_show, @sort_by)
-                                 .where(id: base_office_hours.pluck(:id))
+    # Base relation: all saved office hours for this student, filtered by day
+    base_scope = current_user.saved_office_hours
+                             .where(day: @days_to_show)
+                             .includes(:questions)
+  
+    # Apply sorting
+    case @sort_by
+    when "instructor"
+      @my_office_hours = base_scope.order(instructor: :asc)
+    when "day"
+      # Day-of-week + time ordering
+      day_order = OfficeHour.all_days
+      @my_office_hours = base_scope.to_a.sort_by do |oh|
+        [
+          day_order.index(oh.day) || 99,
+          oh.start_time
+        ]
+      end
+    else # "course_name"
+      @my_office_hours = base_scope.order(course_name: :asc)
+    end
   end
 
   def save_class

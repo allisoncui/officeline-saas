@@ -50,6 +50,29 @@ class OfficeHoursController < ApplicationController
                                 .order(started_at: :desc)
                                 .limit(20)
                                 .includes(:office_hour, :queue_entries)
+
+        # Analytics — all questions for this course
+        @questions = Question.joins(:office_hour)
+        .where(office_hours: { course_name: current_user.course_name })
+
+        # Breakdown by type (for pie chart)
+        @question_breakdown = @questions.group(:question_type).count
+
+        # KPI metrics
+        @total_questions = @questions.count
+        @total_sessions  = @sessions.count
+        @avg_questions_per_session = @total_sessions > 0 ? (@total_questions.to_f / @total_sessions).round(1) : 0
+
+        # Most common question type
+        @most_common_type = @question_breakdown.max_by { |_k, v| v }&.first&.titleize || "N/A"
+
+        # Busiest hour (by question creation time)
+        @busiest_hour = @questions
+          .group("strftime('%H', questions.created_at)")
+          .count
+          .max_by { |_k, v| v }
+        &.first
+
       end
     
       render :ta_index

@@ -58,6 +58,50 @@
 <!-- Dashboard View -->
 <% if @view == 'dashboard' %>
   <div style="margin-bottom: 24px;">
+
+    <!-- Analytics Panel -->
+    <h3 style="margin-top: 0; margin-bottom: 16px; color: #0f172a;">
+      Office Hour Analytics
+    </h3>
+    <div class="ol-card" style="margin-bottom: 32px;">
+      <div style="display: grid; grid-template-columns: 2fr 3fr; gap: 24px; align-items: center;">
+
+        <!-- PIE CHART -->
+        <div>
+          <canvas id="questionTypeChart"></canvas>
+        </div>
+
+        <!-- KPI GRID -->
+        <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 12px;">
+          <div class="ol-card">
+            <strong>Total Questions</strong><br>
+            <%= @total_questions %>
+          </div>
+
+          <div class="ol-card">
+            <strong>Sessions Held</strong><br>
+            <%= @total_sessions %>
+          </div>
+
+          <div class="ol-card">
+            <strong>Avg Q / Session</strong><br>
+            <%= @avg_questions_per_session %>
+          </div>
+
+          <div class="ol-card">
+            <strong>Top Question Type</strong><br>
+            <%= @most_common_type %>
+          </div>
+
+          <div class="ol-card">
+            <strong>Busiest Hour</strong><br>
+            <%= @busiest_hour ? Time.parse(@busiest_hour).strftime("%I %p") : "N/A" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <h3 style="margin-top: 0; margin-bottom: 16px; color: #0f172a;">Recent Office Hour Sessions</h3>
     
     <% if @sessions.present? %>
@@ -222,3 +266,39 @@
     <p>You have no office hours scheduled yet.</p>
   <% end %>
 <% end %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("turbo:load", () => {
+  const ctx = document.getElementById("questionTypeChart");
+
+  if (!ctx) return;
+
+  const data = <%= raw @question_breakdown.to_json %>;
+
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(data),
+      datasets: [{
+        data: Object.values(data),
+        backgroundColor: [
+          "#3b82f6",
+          "#22c55e",
+          "#f59e0b",
+          "#ef4444",
+          "#8b5cf6"
+        ]
+      }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: "Question Type Distribution"
+        }
+      }
+    }
+  });
+});
+</script>
