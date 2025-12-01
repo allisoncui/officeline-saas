@@ -7,6 +7,11 @@ class QuestionsController < ApplicationController
     @question = @office_hour.questions.build(question_params)
     @question.user = current_user
     
+    if @office_hour.queue_active?
+      current_session = @office_hour.queue_sessions.find_by(ended_at: nil)
+      @question.queue_session = current_session if current_session
+    end
+    
     if @question.save
       redirect_to @office_hour, notice: 'Question submitted successfully!'
     else
@@ -52,6 +57,6 @@ class QuestionsController < ApplicationController
   end
 
   def question_params
-    params.require(:question).permit(:question_text)
+    params.require(:question).permit(:question_text, :question_type)
   end
 end

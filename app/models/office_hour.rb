@@ -38,7 +38,10 @@ class OfficeHour < ApplicationRecord
   # Queue methods
   def start_queue!
     # Create a new queue session
-    queue_sessions.create!(started_at: Time.current)
+    new_session = queue_sessions.create!(started_at: Time.current)
+    
+    questions.where(queue_session_id: nil).update_all(queue_session_id: new_session.id)
+    
     update!(queue_active: true, queue_started_at: Time.current)
   end
 

@@ -81,6 +81,13 @@
     <h3 class="ol-section-title">Submit a Question</h3>
     <%= form_with model: [@office_hour, Question.new], local: true do |form| %>
       <div class="ol-field">
+        <%= form.label :question_type, "Question Type:", class: "ol-label" %>
+        <%= form.select :question_type,
+            options_for_select(Question::QUESTION_TYPES, form.object.question_type),
+            { prompt: 'Select a question type' },
+            { class: "ol-select", required: true } %>
+      </div>
+      <div class="ol-field">
         <%= form.label :question_text, "Your Question/Topic:", class: "ol-label" %>
         <%= form.text_area :question_text, rows: 3,
             placeholder: "What would you like help with?",
@@ -102,6 +109,11 @@
         <div class="question-item" style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
             <div style="flex: 1;">
+              <div style="margin-bottom: 4px;">
+                <span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                  <%= question.question_type_display %>
+                </span>
+              </div>
               <div><strong>Question:</strong> <%= question.question_text %></div>
               <div style="font-size: 0.9em; color: gray;">
                 Submitted: <%= question.created_at.strftime("%B %d, %Y at %I:%M %p") %>
@@ -131,19 +143,62 @@
   <!-- TA VIEW: Question Summary -->
   <div class="ol-card" style="margin-top: 24px; padding: 16px; border-radius: 10px; background: #fafafa;">
     <h3 class="ol-section-title" style="margin-bottom: 12px;">Questions Summary</h3>
-    <% if @office_hour.questions.any? %>
-      <ul style="list-style: none; padding: 0;">
-        <% @office_hour.questions.order(created_at: :desc).each do |question| %>
-          <li style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee;">
-            <div><strong>Question:</strong> <%= question.question_text %></div>
-            <div style="font-size: 0.9em; color: gray;">
-              Submitted <%= time_ago_in_words(question.created_at) %> ago
-            </div>
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
+    
+    <% if @office_hour.queue_active? %>
+      <% current_session = @office_hour.queue_sessions.find_by(ended_at: nil) %>
+      <% if current_session && current_session.questions.any? %>
+        <div style="margin-bottom: 16px;">
+          <h4 style="margin: 0 0 8px 0; font-size: 1rem; color: #059669;">
+            Current Session (<%= current_session.started_at.strftime("%I:%M %p") %>)
+          </h4>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <% current_session.questions.order(created_at: :desc).each do |question| %>
+              <li style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee;">
+                <div style="margin-bottom: 4px;">
+                  <span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                    <%= question.question_type_display %>
+                  </span>
+                </div>
+                <div><strong><%= question.user.uni %>:</strong> <%= question.question_text %></div>
+                <div style="font-size: 0.9em; color: gray;">
+                  Submitted <%= time_ago_in_words(question.created_at) %> ago
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    <% end %>
+    
+    <% # Show questions not associated with any session (submitted before queue started) %>
+    <% unassociated_questions = @office_hour.questions.where(queue_session_id: nil) %>
+    <% if unassociated_questions.any? %>
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #e5e7eb;">
+        <h4 style="margin: 0 0 8px 0; font-size: 1rem; color: #6b7280;">
+          Questions Submitted Before Queue Started
+        </h4>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <% unassociated_questions.order(created_at: :desc).each do |question| %>
+            <li style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee;">
+              <div style="margin-bottom: 4px;">
+                <span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                  <%= question.question_type_display %>
+                </span>
+              </div>
+              <div><strong><%= question.user.uni %>:</strong> <%= question.question_text %></div>
+              <div style="font-size: 0.9em; color: gray;">
+                Submitted <%= time_ago_in_words(question.created_at) %> ago
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <% if @office_hour.questions.empty? %>
       <p><em>No questions have been submitted yet.</em></p>
+    <% elsif @office_hour.queue_active? && (!current_session || current_session.questions.empty?) && unassociated_questions.empty? %>
+      <p><em>No questions for the current session yet.</em></p>
     <% end %>
   </div>
 <% end %>

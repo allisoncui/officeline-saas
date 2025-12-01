@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe QuestionsController, type: :controller do
   let(:user) { create(:user, uni: 'test123', role: 'student') }
   let(:office_hour) { create(:office_hour) }
-  let(:valid_attributes) { { question_text: 'How do I implement authentication?' } }
-  let(:invalid_attributes) { { question_text: '' } }
+  let(:valid_attributes) { { question_text: 'How do I implement authentication?', question_type: 'general' } }
+  let(:invalid_attributes) { { question_text: '', question_type: '' } }
   
   before :each do
     sign_in user
@@ -224,10 +224,11 @@ RSpec.describe QuestionsController, type: :controller do
     end
 
     describe '#question_params' do
-      it 'permits question_text' do
-        controller.params = ActionController::Parameters.new(question: { question_text: 'test' })
+      it 'permits question_text and question_type' do
+        controller.params = ActionController::Parameters.new(question: { question_text: 'test', question_type: 'general' })
         result = controller.send(:question_params)
         expect(result['question_text']).to eq('test')
+        expect(result['question_type']).to eq('general')
         expect(result).to be_permitted
       end
     end

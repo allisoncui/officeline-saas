@@ -13,6 +13,13 @@
     <% end %>
 
     <div class="ol-field">
+      <%= form.label :question_type, "Question Type:", class: "ol-label" %>
+      <%= form.select :question_type,
+          options_for_select(Question::QUESTION_TYPES, @question.question_type),
+          { prompt: 'Select a question type' },
+          { class: "ol-select", required: true } %>
+    </div>
+    <div class="ol-field">
       <%= form.label :question_text, "Your Question/Topic:", class: "ol-label" %>
       <%= form.text_area :question_text, rows: 4,
           placeholder: "What would you like help with?",

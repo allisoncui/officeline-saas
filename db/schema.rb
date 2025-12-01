@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_30_235823) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_01_014714) do
   create_table "enrollments", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "office_hour_id", null: false
@@ -41,7 +41,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_30_235823) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.string "question_type"
+    t.integer "queue_session_id"
     t.index ["office_hour_id"], name: "index_questions_on_office_hour_id"
+    t.index ["queue_session_id"], name: "index_questions_on_queue_session_id"
     t.index ["user_id"], name: "index_questions_on_user_id"
   end
 
@@ -68,6 +71,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_30_235823) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["office_hour_id"], name: "index_queue_sessions_on_office_hour_id"
+    t.index ["started_at"], name: "index_queue_sessions_on_started_at"
   end
 
   create_table "users", force: :cascade do |t|
@@ -77,9 +81,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_30_235823) do
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
     t.string "role"
-    t.string "course_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "course_name"
     t.text "saved_classes", default: "[]"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uni", "role"], name: "index_users_on_uni_and_role", unique: true
@@ -88,6 +92,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_30_235823) do
   add_foreign_key "enrollments", "office_hours"
   add_foreign_key "enrollments", "users"
   add_foreign_key "questions", "office_hours"
+  add_foreign_key "questions", "queue_sessions"
   add_foreign_key "questions", "users"
   add_foreign_key "queue_entries", "office_hours"
   add_foreign_key "queue_entries", "queue_sessions"

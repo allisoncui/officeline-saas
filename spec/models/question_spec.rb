@@ -8,6 +8,7 @@ RSpec.describe Question, type: :model do
 
   describe 'validations' do
     it { should validate_presence_of(:question_text) }
+    it { should validate_presence_of(:question_type) }
   end
 
   describe 'factory' do
@@ -31,6 +32,21 @@ RSpec.describe Question, type: :model do
     it 'is invalid without question_text' do
       question.question_text = nil
       expect(question).to_not be_valid
+    end
+
+    it 'is invalid without question_type' do
+      question.question_type = nil
+      expect(question).to_not be_valid
+    end
+
+    it 'is invalid with invalid question_type' do
+      question.question_type = 'invalid_type'
+      expect(question).to_not be_valid
+    end
+
+    it 'is valid with valid question_type' do
+      question.question_type = 'general'
+      expect(question).to be_valid
     end
 
     it 'is invalid without office_hour' do

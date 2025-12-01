@@ -1,6 +1,7 @@
 class QueueSession < ApplicationRecord
   belongs_to :office_hour
   has_many :queue_entries, dependent: :nullify
+  has_many :questions, dependent: :nullify
   
   validates :started_at, presence: true
   

@@ -33,7 +33,7 @@
 .ol-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
 .ol-label { font-weight: 600; margin-right: 6px; }
 .ol-input { padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px; min-width: 260px; }
-.ol-select { padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px; }
+.ol-select { padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px; width: auto; max-width: 300px; min-width: 200px; }
 .ol-check { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; }
 
 /* Buttons / links */

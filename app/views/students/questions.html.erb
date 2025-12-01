@@ -88,6 +88,11 @@
           <div class="question-item" style="position: relative;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
               <div style="flex: 1;">
+                <div style="margin-bottom: 6px;">
+                  <span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                    <%= question.question_type_display %>
+                  </span>
+                </div>
                 <p style="margin: 0 0 8px 0; color: #0f172a;"><%= question.question_text %></p>
                 <p style="margin: 0; color: #94a3b8; font-size: 0.85rem;">
                   Submitted <%= time_ago_in_words(question.created_at) %> ago
