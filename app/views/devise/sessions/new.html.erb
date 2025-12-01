@@ -1,26 +1,84 @@
-<h2>Log in</h2>
+<div style="max-width: 400px; margin: 40px auto; padding: 24px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="margin-top: 0; color: #0f172a;">Sign In</h2>
 
-<%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-  <div class="field">
-    <%= f.label :uni, "University ID (UNI)" %><br />
-    <%= f.text_field :uni, autofocus: true, autocomplete: "uni" %>
-  </div>
+  <% if @uni.present? && @available_accounts.present? %>
+    <!-- Step 2: Show account selector + password -->
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+      <%= f.hidden_field :uni, value: @uni %>
+      
+      <% if @available_accounts.count > 1 %>
+        <!-- Multiple accounts - show selector -->
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #0f172a;">Select Account Type:</label>
+          <% @available_accounts.each do |account| %>
+            <label style="display: block; padding: 12px; border: 2px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;"
+                   onmouseover="this.style.borderColor='#2563eb'; this.style.background='#eff6ff';"
+                   onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='white';">
+              <%= f.radio_button :role, account.role, style: "margin-right: 8px;" %>
+              <strong><%= account.role.capitalize %></strong>
+              <% if account.ta? %>
+                <small style="color: #64748b;"> - <%= account.course_name %></small>
+              <% end %>
+            </label>
+          <% end %>
+        </div>
+      <% else %>
+        <!-- Single account - hide role -->
+        <%= f.hidden_field :role, value: @default_role %>
+        <div style="margin-bottom: 16px;">
+          <p style="color: #64748b; margin: 0;">
+            Signing in as: <strong><%= @default_role.capitalize %></strong>
+            <% if @available_accounts.first.ta? %>
+              (<%= @available_accounts.first.course_name %>)
+            <% end %>
+          </p>
+        </div>
+      <% end %>
 
-  <div class="field">
-    <%= f.label :password %><br />
-    <%= f.password_field :password, autocomplete: "current-password" %>
-  </div>
+      <div style="margin-bottom: 16px;">
+        <%= f.label :password, style: "display: block; margin-bottom: 4px; font-weight: 500; color: #0f172a;" %>
+        <%= f.password_field :password, autocomplete: "current-password", autofocus: true,
+    style: "width: 100%; max-width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 1rem; box-sizing: border-box;" %>
+      </div>
 
-  <% if devise_mapping.rememberable? %>
-    <div class="field">
-      <%= f.check_box :remember_me %>
-      <%= f.label :remember_me %>
+      <% if devise_mapping.rememberable? %>
+        <div style="margin-bottom: 20px;">
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <%= f.check_box :remember_me, style: "margin-right: 8px;" %>
+            <span style="color: #64748b; font-size: 0.9rem;">Remember me</span>
+          </label>
+        </div>
+      <% end %>
+
+      <%= f.submit "Sign In", class: "ol-btn", style: "width: 100%; padding: 12px; font-size: 1rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;" %>
+    <% end %>
+
+    <div style="margin-top: 16px; text-align: center;">
+      <%= link_to "← Use different UNI", new_user_session_path, style: "color: #2563eb; text-decoration: none; font-size: 0.9rem;" %>
+    </div>
+
+  <% else %>
+    <!-- Step 1: Enter UNI first -->
+    <%= form_tag new_user_session_path, method: :get, style: "margin: 0;" do %>
+      <div style="margin-bottom: 16px;">
+        <%= label_tag :uni, "UNI", style: "display: block; margin-bottom: 4px; font-weight: 500; color: #0f172a;" %>
+        <%= text_field_tag :uni, params[:uni], autofocus: true, autocomplete: "username",
+    placeholder: "Enter your UNI",
+    style: "width: 100%; max-width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 1rem; box-sizing: border-box;" %>
+      </div>
+
+      <%= submit_tag "Continue", class: "ol-btn", style: "width: 100%; padding: 12px; font-size: 1rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;" %>
+    <% end %>
+
+    <%= render "devise/shared/links" %>
+
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+      <p style="color: #64748b; margin: 0 0 8px 0; font-size: 0.9rem;">Don't have an account?</p>
+      <%= link_to "Sign up as Student", new_user_registration_path(role: 'student'), 
+          style: "color: #2563eb; text-decoration: none; font-weight: 500; margin-right: 12px;" %>
+      |
+      <%= link_to "Sign up as TA", new_user_registration_path(role: 'ta'), 
+          style: "color: #2563eb; text-decoration: none; font-weight: 500; margin-left: 12px;" %>
     </div>
   <% end %>
-
-  <div class="actions">
-    <%= f.submit "Log in" %>
-  </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+</div>

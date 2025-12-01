@@ -3,7 +3,11 @@ class QueueEntry < ApplicationRecord
   belongs_to :user
   belongs_to :queue_session, optional: true
   
-  validates :user_id, uniqueness: { scope: :office_hour_id, message: "already in queue" }
+  validates :user_id, uniqueness: { 
+    scope: :office_hour_id, 
+    conditions: -> { where(status: 'waiting') },
+    message: "is already in this queue" 
+  }
   validates :status, inclusion: { in: %w[waiting served removed] }
   
   scope :active, -> { where(status: 'waiting').order(:joined_at) }
@@ -21,8 +25,11 @@ class QueueEntry < ApplicationRecord
   
   def update_positions
     # Only reposition entries that are still waiting
-    office_hour.queue_entries.where(status: 'waiting').order(:joined_at).each_with_index do |entry, index|
-      entry.update_column(:position, index + 1) if entry.position != (index + 1)
+    # Order by joined_at to maintain FIFO queue
+    office_hour.queue_entries.where(status: 'waiting')
+                              .order(:joined_at)
+                              .each_with_index do |entry, index|
+      entry.update_column(:position, index + 1) unless entry.position == (index + 1)
     end
   end
 end

@@ -18,11 +18,19 @@
           <% if user_signed_in? %>
             <span class="ol-user-info">
               <%= current_user.uni %> (<%= current_user.role.upcase %>)
+              
+              <% if current_user.other_account %>
+                | <%= button_to "Switch to #{current_user.other_account.role.capitalize}", 
+                                destroy_user_session_path(switch_to: current_user.other_account.role), 
+                                method: :delete,
+                                data: { turbo: false },
+                                style: "display: inline; background: none; border: none; color: #2563eb; text-decoration: none; font-weight: 500; cursor: pointer; padding: 0; font-size: inherit;" %>
+              <% end %>
             </span>
             <%= button_to "Log out", destroy_user_session_path, method: :delete, class: "ol-btn ol-btn-logout" %>
           <% else %>
             <%= link_to "Sign in", new_user_session_path, class: "ol-link" %>
-            <%= link_to "Sign up", new_user_registration_path, class: "ol-btn" %>
+            <%= link_to "Sign up", new_user_registration_path(role: 'student'), class: "ol-btn" %>
           <% end %>
         </div>
       </div>

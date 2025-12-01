@@ -1,0 +1,48 @@
+<div style="max-width: 400px; margin: 40px auto; padding: 24px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="margin-top: 0; color: #0f172a;">Select Account Type</h2>
+  
+  <p style="color: #64748b; margin-bottom: 24px;">
+    You have multiple accounts associated with <strong><%= @uni %></strong>. Please select which account you'd like to sign in to:
+  </p>
+
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+    <%= f.hidden_field :uni, value: @uni %>
+    <%= f.hidden_field :password, value: params.dig(:user, :password) %>
+    <%= f.hidden_field :remember_me, value: params.dig(:user, :remember_me) %>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+      <% @available_accounts.each do |account| %>
+        <label style="
+          display: flex;
+          align-items: center;
+          padding: 16px;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        " onmouseover="this.style.borderColor='#2563eb'; this.style.background='#eff6ff';" 
+           onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='white';">
+          <%= f.radio_button :role, account.role, style: "margin-right: 12px;" %>
+          <div>
+            <div style="font-weight: 600; color: #0f172a; font-size: 1.1rem;">
+              <%= account.role.capitalize %> Account
+            </div>
+            <div style="color: #64748b; font-size: 0.9rem;">
+              <% if account.ta? %>
+                Course: <%= account.course_name %>
+              <% else %>
+                Student Account
+              <% end %>
+            </div>
+          </div>
+        </label>
+      <% end %>
+    </div>
+
+    <%= f.submit "Sign In", class: "ol-btn", style: "width: 100%; padding: 12px; font-size: 1rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;" %>
+  <% end %>
+
+  <div style="margin-top: 16px; text-align: center;">
+    <%= link_to "← Back to login", new_user_session_path, style: "color: #2563eb; text-decoration: none; font-size: 0.9rem;" %>
+  </div>
+</div>

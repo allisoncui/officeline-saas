@@ -3,30 +3,34 @@ class QueueEntriesController < ApplicationController
   before_action :ensure_queue_active, only: [:create]
   
   # Student joins queue
-  def create
-    if @office_hour.user_in_queue?(current_user)
-      redirect_to @office_hour, alert: 'You are already in the queue.'
-      return
+    def create
+        if @office_hour.user_in_queue?(current_user)
+            redirect_to @office_hour, alert: 'You are already in the queue.'
+            return
+        end
+        
+        # Remove any old entries for this user in this office hour (from previous sessions)
+        @office_hour.queue_entries.where(user: current_user).where.not(status: 'waiting').destroy_all
+        
+        # Find the current active session
+        current_session = @office_hour.queue_sessions.find_by(ended_at: nil)
+        
+        @queue_entry = @office_hour.queue_entries.build(
+            user: current_user,
+            queue_session: current_session
+        )
+        
+        if @queue_entry.save
+            @queue_entry.reload # Reload to get the updated position
+            redirect_to @office_hour, notice: "You've joined the queue at position #{@queue_entry.position}."
+        else
+            if @queue_entry.errors[:user_id].include?("already in queue")
+            redirect_to @office_hour, alert: 'Someone joined at the same time. Please refresh and try again.'
+            else
+            redirect_to @office_hour, alert: 'Unable to join queue. Please try again.'
+            end
+        end
     end
-    
-    # Find the current active session
-    current_session = @office_hour.queue_sessions.find_by(ended_at: nil)
-    
-    @queue_entry = @office_hour.queue_entries.build(
-      user: current_user,
-      queue_session: current_session
-    )
-    
-    if @queue_entry.save
-      redirect_to @office_hour, notice: "You've joined the queue at position #{@queue_entry.position}."
-    else
-      if @queue_entry.errors[:user_id].include?("already in queue")
-        redirect_to @office_hour, alert: 'Someone joined at the same time. Please refresh and try again.'
-      else
-        redirect_to @office_hour, alert: 'Unable to join queue. Please try again.'
-      end
-    end
-  end
   
   # Student leaves queue
   def destroy
