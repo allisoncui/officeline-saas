@@ -8,6 +8,7 @@ class User < ApplicationRecord
   validates :uni, presence: true
   validates :role, presence: true, inclusion: { in: %w[student ta] }
   validates :uni, uniqueness: { scope: :role, message: "already has a %{value} account" }
+  validates :course_name, presence: true, if: -> { role == 'ta' }
   
   has_many :enrollments, dependent: :destroy
   has_many :saved_office_hours, through: :enrollments, source: :office_hour

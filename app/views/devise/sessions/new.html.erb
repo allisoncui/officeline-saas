@@ -38,7 +38,7 @@
       <div style="margin-bottom: 16px;">
         <%= f.label :password, style: "display: block; margin-bottom: 4px; font-weight: 500; color: #0f172a;" %>
         <%= f.password_field :password, autocomplete: "current-password", autofocus: true,
-    style: "width: 100%; max-width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 1rem; box-sizing: border-box;" %>
+            style: "width: 100%; max-width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 1rem; box-sizing: border-box;" %>
       </div>
 
       <% if devise_mapping.rememberable? %>
@@ -63,8 +63,8 @@
       <div style="margin-bottom: 16px;">
         <%= label_tag :uni, "UNI", style: "display: block; margin-bottom: 4px; font-weight: 500; color: #0f172a;" %>
         <%= text_field_tag :uni, params[:uni], autofocus: true, autocomplete: "username",
-    placeholder: "Enter your UNI",
-    style: "width: 100%; max-width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 1rem; box-sizing: border-box;" %>
+            placeholder: "Enter your UNI",
+            style: "width: 100%; max-width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 1rem; box-sizing: border-box;" %>
       </div>
 
       <%= submit_tag "Continue", class: "ol-btn", style: "width: 100%; padding: 12px; font-size: 1rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;" %>
