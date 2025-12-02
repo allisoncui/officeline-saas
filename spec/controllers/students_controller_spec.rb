@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe StudentsController, type: :controller do
   let(:student) { create(:user, role: 'student', uni: 'student123') }
-  let(:ta) { create(:user, role: 'ta', uni: 'ta123') }
+  let(:ta) { create(:user, role: 'ta', uni: 'ta123', course_name: 'Engineering SaaS') }
 
   describe 'GET #show' do
     before { sign_in student }
@@ -241,4 +241,3 @@ RSpec.describe StudentsController, type: :controller do
     end
   end
 end
-

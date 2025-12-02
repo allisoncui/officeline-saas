@@ -10,9 +10,34 @@ RSpec.describe User, type: :model do
 
   describe 'validations' do
     it { should validate_presence_of(:uni) }
-    it { should validate_uniqueness_of(:uni).case_insensitive }
     it { should validate_presence_of(:role) }
     it { should validate_inclusion_of(:role).in_array(%w[student ta]) }
+    
+    it 'validates uniqueness of uni scoped to role' do
+      create(:user, uni: 'abc123', role: 'student')
+      duplicate = build(:user, uni: 'abc123', role: 'student')
+      
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:uni]).to be_present
+    end
+    
+    it 'allows same UNI with different roles' do
+      create(:user, uni: 'abc123', role: 'student')
+      ta_account = build(:user, uni: 'abc123', role: 'ta', course_name: 'CS 101')
+      
+      expect(ta_account).to be_valid
+    end
+    
+    it 'validates presence of course_name for TAs' do
+      ta = build(:user, role: 'ta', course_name: nil)
+      expect(ta).not_to be_valid
+      expect(ta.errors[:course_name]).to be_present
+    end
+    
+    it 'does not require course_name for students' do
+      student = build(:user, role: 'student', course_name: nil)
+      expect(student).to be_valid
+    end
   end
 
   describe 'factory' do
@@ -24,7 +49,7 @@ RSpec.describe User, type: :model do
   describe 'role helpers' do
     describe '#ta?' do
       it 'returns true for ta role' do
-        user = build(:user, role: 'ta')
+        user = build(:user, role: 'ta', course_name: 'CS 101')
         expect(user.ta?).to be true
       end
 
@@ -41,7 +66,7 @@ RSpec.describe User, type: :model do
       end
 
       it 'returns false for ta role' do
-        user = build(:user, role: 'ta')
+        user = build(:user, role: 'ta', course_name: 'CS 101')
         expect(user.student?).to be false
       end
     end
@@ -154,6 +179,57 @@ RSpec.describe User, type: :model do
       it 'returns empty when no classes are saved' do
         user.update(saved_classes: [])
         expect(user.saved_class_office_hours).to be_empty
+      end
+    end
+  end
+
+  describe 'dual accounts' do
+    describe '.accounts_for_uni' do
+      it 'returns all accounts for a given UNI' do
+        create(:user, uni: 'abc123', role: 'student')
+        create(:user, uni: 'abc123', role: 'ta', course_name: 'CS 101')
+        create(:user, uni: 'xyz789', role: 'student')
+        
+        accounts = User.accounts_for_uni('abc123')
+        expect(accounts.count).to eq(2)
+        expect(accounts.pluck(:role)).to match_array(%w[student ta])
+      end
+    end
+    
+    describe '.has_both_accounts?' do
+      it 'returns true when UNI has both student and TA accounts' do
+        create(:user, uni: 'abc123', role: 'student')
+        create(:user, uni: 'abc123', role: 'ta', course_name: 'CS 101')
+        
+        expect(User.has_both_accounts?('abc123')).to be true
+      end
+      
+      it 'returns false when UNI has only one account' do
+        create(:user, uni: 'abc123', role: 'student')
+        
+        expect(User.has_both_accounts?('abc123')).to be false
+      end
+    end
+    
+    describe '#other_account' do
+      it 'returns the TA account when called on student' do
+        student = create(:user, uni: 'abc123', role: 'student')
+        ta = create(:user, uni: 'abc123', role: 'ta', course_name: 'CS 101')
+        
+        expect(student.other_account).to eq(ta)
+      end
+      
+      it 'returns the student account when called on TA' do
+        student = create(:user, uni: 'abc123', role: 'student')
+        ta = create(:user, uni: 'abc123', role: 'ta', course_name: 'CS 101')
+        
+        expect(ta.other_account).to eq(student)
+      end
+      
+      it 'returns nil when no other account exists' do
+        student = create(:user, uni: 'abc123', role: 'student')
+        
+        expect(student.other_account).to be_nil
       end
     end
   end

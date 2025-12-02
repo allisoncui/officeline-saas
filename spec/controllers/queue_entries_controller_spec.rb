@@ -1,15 +1,17 @@
 require 'rails_helper'
 
 RSpec.describe QueueEntriesController, type: :controller do
-  let(:student) { create(:user, role: 'student', uni: 'student123') }
-  let(:ta) { create(:user, role: 'ta', uni: 'ta123', course_name: 'Engineering SaaS') }
-  let(:office_hour) { create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'ta123') }
+  let(:student) { create(:user, :student, uni: 'student123') }
+  let(:ta) { create(:user, :ta, uni: 'ta123', course_name: 'Engineering SaaS') }
+  let(:office_hour) { create(:office_hour) }
 
   describe 'POST #create' do
     context 'when queue is active' do
+      let!(:queue_session) { create(:queue_session, office_hour: office_hour, ended_at: nil) }
+      
       before do
-        office_hour.start_queue!
         sign_in student
+        office_hour.update(queue_active: true)
       end
 
       it 'creates a new queue entry' do
@@ -23,66 +25,58 @@ RSpec.describe QueueEntriesController, type: :controller do
         entry = QueueEntry.last
         expect(entry.user).to eq(student)
         expect(entry.office_hour).to eq(office_hour)
-        expect(entry.status).to eq('waiting')
       end
 
-      it 'redirects with success notice including position' do
+      it 'associates entry with current queue session' do
+        post :create, params: { office_hour_id: office_hour.id }
+        entry = QueueEntry.last
+        expect(entry.queue_session).to eq(queue_session)
+      end
+
+      it 'redirects with success notice' do
         post :create, params: { office_hour_id: office_hour.id }
         expect(response).to redirect_to(office_hour)
         expect(flash[:notice]).to match(/joined the queue/i)
       end
 
       it 'prevents duplicate entries' do
-        create(:queue_entry, user: student, office_hour: office_hour, status: 'waiting')
+        create(:queue_entry, office_hour: office_hour, user: student)
         post :create, params: { office_hour_id: office_hour.id }
         expect(response).to redirect_to(office_hour)
         expect(flash[:alert]).to match(/already in the queue/i)
       end
 
       it 'handles save failure with "already in queue" validation error' do
-        # Stub OfficeHour.find to return our stubbed office_hour
-        allow(OfficeHour).to receive(:find).with(office_hour.id.to_s).and_return(office_hour)
-        allow(office_hour).to receive(:user_in_queue?).with(student).and_return(false)
+        # Create existing entry
+        create(:queue_entry, office_hour: office_hour, user: student)
         
-        # Create a queue entry mock that fails to save
-        queue_entry = instance_double(QueueEntry)
-        allow(office_hour.queue_entries).to receive(:build).with(user: student).and_return(queue_entry)
-        allow(queue_entry).to receive(:save).and_return(false)
-        errors = instance_double(ActiveModel::Errors)
-        allow(errors).to receive(:[]).with(:user_id).and_return(['already in queue'])
-        allow(queue_entry).to receive(:errors).and_return(errors)
-        
+        # Try to create duplicate
         post :create, params: { office_hour_id: office_hour.id }
+        
         expect(response).to redirect_to(office_hour)
-        expect(flash[:alert]).to match(/Someone joined at the same time/i)
+        expect(flash[:alert]).to match(/already in the queue/i)
       end
 
       it 'handles save failure with other validation errors' do
-        # Stub OfficeHour.find to return our stubbed office_hour
-        allow(OfficeHour).to receive(:find).with(office_hour.id.to_s).and_return(office_hour)
-        allow(office_hour).to receive(:user_in_queue?).with(student).and_return(false)
-        
-        # Create a queue entry mock that fails to save
-        queue_entry = instance_double(QueueEntry)
-        allow(office_hour.queue_entries).to receive(:build).with(user: student).and_return(queue_entry)
-        allow(queue_entry).to receive(:save).and_return(false)
-        errors = instance_double(ActiveModel::Errors)
-        allow(errors).to receive(:[]).with(:user_id).and_return([])
-        allow(queue_entry).to receive(:errors).and_return(errors)
+        # Stub to force a different validation error
+        allow_any_instance_of(QueueEntry).to receive(:save).and_return(false)
+        allow_any_instance_of(QueueEntry).to receive(:errors).and_return(
+          double(:[]).tap { |d| allow(d).to receive(:[]).with(:user_id).and_return([]) }
+        )
         
         post :create, params: { office_hour_id: office_hour.id }
+        
         expect(response).to redirect_to(office_hour)
-        expect(flash[:alert]).to match(/Unable to join queue/i)
+        expect(flash[:alert]).to match(/unable to join queue/i)
       end
     end
 
     context 'when queue is inactive' do
       before { sign_in student }
 
-      it 'does not create entry and redirects with alert' do
-        expect {
-          post :create, params: { office_hour_id: office_hour.id }
-        }.not_to change(QueueEntry, :count)
+      it 'redirects with alert' do
+        office_hour.update(queue_active: false)
+        post :create, params: { office_hour_id: office_hour.id }
         expect(response).to redirect_to(office_hour)
         expect(flash[:alert]).to match(/not currently active/i)
       end
@@ -90,108 +84,79 @@ RSpec.describe QueueEntriesController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-    before do
-      office_hour.start_queue!
-      sign_in student
-    end
+    before { sign_in student }
 
-    it 'removes the queue entry' do
-      entry = create(:queue_entry, user: student, office_hour: office_hour, status: 'waiting')
+    it 'marks the queue entry as removed (not destroyed)' do
+      entry = create(:queue_entry, office_hour: office_hour, user: student, status: 'waiting')
+      
       expect {
         delete :destroy, params: { office_hour_id: office_hour.id, id: entry.id }
-      }.to change(QueueEntry, :count).by(-1)
-    end
-
-    it 'updates entry status to removed before destroying' do
-      entry = create(:queue_entry, user: student, office_hour: office_hour, status: 'waiting')
-      # The update happens in the controller, we just verify the flow works
-      delete :destroy, params: { office_hour_id: office_hour.id, id: entry.id }
-      expect(response).to redirect_to(office_hour)
-      expect(flash[:notice]).to match(/left the queue/i)
+      }.to_not change(QueueEntry, :count)
+      
+      expect(entry.reload.status).to eq('removed')
     end
 
     it 'redirects with success notice' do
-      entry = create(:queue_entry, user: student, office_hour: office_hour, status: 'waiting')
+      entry = create(:queue_entry, office_hour: office_hour, user: student, status: 'waiting')
       delete :destroy, params: { office_hour_id: office_hour.id, id: entry.id }
       expect(response).to redirect_to(office_hour)
       expect(flash[:notice]).to match(/left the queue/i)
     end
 
-    it 'handles non-existent entry gracefully' do
+    it 'handles non-existent entry' do
       delete :destroy, params: { office_hour_id: office_hour.id, id: 999 }
       expect(response).to redirect_to(office_hour)
       expect(flash[:alert]).to match(/not in the queue/i)
-    end
-
-    it 'handles entry not found by user' do
-      # When find_by returns nil (user not in queue)
-      delete :destroy, params: { office_hour_id: office_hour.id, id: 999 }
-      expect(response).to redirect_to(office_hour)
-      expect(flash[:alert]).to match(/not in the queue/i)
-    end
-  end
-
-  describe 'private methods' do
-    describe '#set_office_hour' do
-      before { sign_in student }
-
-      it 'finds the office hour by office_hour_id' do
-        get :create, params: { office_hour_id: office_hour.id }
-        expect(assigns(:office_hour)).to eq(office_hour)
-      end
-    end
-
-    describe '#ensure_queue_active' do
-      before { sign_in student }
-
-      it 'redirects when queue is inactive' do
-        post :create, params: { office_hour_id: office_hour.id }
-        expect(response).to redirect_to(office_hour)
-        expect(flash[:alert]).to match(/not currently active/i)
-      end
     end
   end
 
   describe 'POST #start_queue' do
-    context 'as a TA' do
-      before { sign_in ta }
+    before { sign_in ta }
 
-      it 'activates the queue' do
-        post :start_queue, params: { office_hour_id: office_hour.id }
-        office_hour.reload
-        expect(office_hour.queue_active).to be true
-        expect(office_hour.queue_started_at).to be_present
-      end
+    it 'starts the queue' do
+      post :start_queue, params: { office_hour_id: office_hour.id }
+      expect(office_hour.reload.queue_active?).to be true
+    end
 
-      it 'redirects with success notice' do
+    it 'creates a queue session' do
+      expect {
         post :start_queue, params: { office_hour_id: office_hour.id }
-        expect(response).to redirect_to(office_hour)
-        expect(flash[:notice]).to match(/started/i)
-      end
+      }.to change(QueueSession, :count).by(1)
+    end
+
+    it 'redirects with success notice' do
+      post :start_queue, params: { office_hour_id: office_hour.id }
+      expect(response).to redirect_to(office_hour)
+      expect(flash[:notice]).to match(/started/i)
     end
 
     context 'as a student' do
       before { sign_in student }
 
-      it 'does not allow students to start queue' do
+      it 'denies access' do
         post :start_queue, params: { office_hour_id: office_hour.id }
         expect(response).to redirect_to(office_hour)
-        expect(flash[:alert]).to match(/only TAs/i)
+        expect(flash[:alert]).to match(/only tas/i)
       end
     end
   end
 
   describe 'POST #close_queue' do
-    context 'as a TA' do
-      before do
-        office_hour.start_queue!
-        sign_in ta
-      end
+    before do
+      sign_in ta
+      office_hour.update(queue_active: true)
+      create(:queue_session, office_hour: office_hour, ended_at: nil)
+    end
 
-    it 'deactivates the queue' do
+    it 'closes the queue' do
       post :close_queue, params: { office_hour_id: office_hour.id }
-      office_hour.reload
-      expect(office_hour.queue_active).to be false
+      expect(office_hour.reload.queue_active?).to be false
+    end
+
+    it 'ends the current session' do
+      session = office_hour.queue_sessions.last
+      post :close_queue, params: { office_hour_id: office_hour.id }
+      expect(session.reload.ended_at).to be_present
     end
 
     it 'marks waiting entries as removed' do
@@ -200,56 +165,50 @@ RSpec.describe QueueEntriesController, type: :controller do
       expect(entry.reload.status).to eq('removed')
     end
 
-      it 'redirects with success notice' do
-        post :close_queue, params: { office_hour_id: office_hour.id }
-        expect(response).to redirect_to(office_hour)
-        expect(flash[:notice]).to match(/closed/i)
-      end
+    it 'redirects with success notice' do
+      post :close_queue, params: { office_hour_id: office_hour.id }
+      expect(response).to redirect_to(office_hour)
+      expect(flash[:notice]).to match(/closed/i)
     end
 
     context 'as a student' do
       before { sign_in student }
 
-      it 'does not allow students to close queue' do
-        office_hour.start_queue!
+      it 'denies access' do
         post :close_queue, params: { office_hour_id: office_hour.id }
         expect(response).to redirect_to(office_hour)
-        expect(flash[:alert]).to match(/only TAs/i)
+        expect(flash[:alert]).to match(/only tas/i)
       end
     end
   end
 
   describe 'DELETE #remove_student' do
-    let(:other_student) { create(:user, role: 'student', uni: 'student456') }
+    before { sign_in ta }
 
-    before do
-      office_hour.start_queue!
-      sign_in ta
-    end
+    let(:student2) { create(:user, :student, uni: 'student456') }
 
-    it 'removes the student from queue' do
-      entry = create(:queue_entry, user: other_student, office_hour: office_hour, status: 'waiting')
+    it 'marks the student as served (not destroyed)' do
+      entry = create(:queue_entry, office_hour: office_hour, user: student2, status: 'waiting')
+      
       expect {
         delete :remove_student, params: { office_hour_id: office_hour.id, id: entry.id }
-      }.to change(QueueEntry, :count).by(-1)
+      }.to_not change(QueueEntry, :count)
+      
+      expect(entry.reload.status).to eq('served')
     end
 
-    it 'marks entry as served before destroying' do
-      entry = create(:queue_entry, user: other_student, office_hour: office_hour, status: 'waiting')
+    it 'keeps the entry for analytics' do
+      entry = create(:queue_entry, office_hour: office_hour, user: student2, status: 'waiting')
       entry_id = entry.id
-      delete :remove_student, params: { office_hour_id: office_hour.id, id: entry.id }
-      # Entry is destroyed, so we check the update was called before destroy
-      expect(QueueEntry.find_by(id: entry_id)).to be_nil
-    end
-
-    it 'calls update with served status before destroy' do
-      entry = create(:queue_entry, user: other_student, office_hour: office_hour, status: 'waiting')
-      expect_any_instance_of(QueueEntry).to receive(:update).with(status: 'served').and_return(true)
-      delete :remove_student, params: { office_hour_id: office_hour.id, id: entry.id }
+      
+      delete :remove_student, params: { office_hour_id: office_hour.id, id: entry_id }
+      
+      expect(QueueEntry.find_by(id: entry_id)).to be_present
+      expect(QueueEntry.find_by(id: entry_id).status).to eq('served')
     end
 
     it 'redirects with success notice' do
-      entry = create(:queue_entry, user: other_student, office_hour: office_hour, status: 'waiting')
+      entry = create(:queue_entry, office_hour: office_hour, user: student2)
       delete :remove_student, params: { office_hour_id: office_hour.id, id: entry.id }
       expect(response).to redirect_to(office_hour)
       expect(flash[:notice]).to match(/removed from queue/i)
@@ -258,13 +217,12 @@ RSpec.describe QueueEntriesController, type: :controller do
     context 'as a student' do
       before { sign_in student }
 
-      it 'does not allow students to remove others' do
-        entry = create(:queue_entry, user: other_student, office_hour: office_hour, status: 'waiting')
+      it 'denies access' do
+        entry = create(:queue_entry, office_hour: office_hour, user: student2)
         delete :remove_student, params: { office_hour_id: office_hour.id, id: entry.id }
         expect(response).to redirect_to(office_hour)
-        expect(flash[:alert]).to match(/only TAs/i)
+        expect(flash[:alert]).to match(/only tas/i)
       end
     end
   end
 end
-

@@ -7,9 +7,10 @@ Feature: validate office hours
     Given a TA user exists with UNI "ta123" and password "password123" and course "Math 101"
     And I am on the office hours home page
     When I follow "Sign in"
-    And I fill in "UNI" with "ta123"
+    And I fill in "UNI" with "student123"
+    And I press "Continue"
     And I fill in "Password" with "password123"
-    And I press "Log in"
+    And I press "Sign In"
     Then I should be on the office hours home page
     When I follow "New office hour"
 

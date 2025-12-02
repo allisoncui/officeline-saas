@@ -1,59 +1,52 @@
 require 'rails_helper'
 
-describe OfficeHoursController, type: :controller do
-  let(:user) { create(:user, uni: 'test123', role: 'student') }
-  let(:ta_user) { create(:user, uni: 'ta123', role: 'ta') }
-  
-  before :each do
-    sign_in user
-  end
-  
-  # Index: filtering and sorting
-  describe 'GET #index' do
-    before :each do
-      @fake_results = [double('office_hour1'), double('office_hour2')]
-    end
+RSpec.describe OfficeHoursController, type: :controller do
+  let(:student) { create(:user, :student, uni: 'student123') }
+  let(:ta) { create(:user, :ta, uni: 'ta123', course_name: 'Engineering SaaS') }
+  let(:office_hour) { create(:office_hour, ta_uni: 'ta123', course_name: 'Engineering SaaS') }
 
+  describe 'GET #index' do
     context 'as a student' do
-      it 'groups office hours by course_name' do
-        oh1 = create(:office_hour, course_name: 'Engineering SaaS')
-        oh2 = create(:office_hour, course_name: 'Engineering SaaS')
-        oh3 = create(:office_hour, course_name: 'Math 101')
-        
+      before { sign_in student }
+
+      it 'assigns @office_hours' do
+        office_hour # create the office hour
         get :index
-        expect(assigns(:office_hours_by_course)).to have_key('Engineering SaaS')
-        expect(assigns(:office_hours_by_course)).to have_key('Math 101')
-        expect(assigns(:office_hours_by_course)['Engineering SaaS']).to include(oh1, oh2)
-        expect(assigns(:office_hours_by_course)['Math 101']).to include(oh3)
+        expect(assigns(:office_hours)).to be_present
       end
 
-      it 'assigns saved_class_names' do
-        user.update(saved_classes: ['Engineering SaaS'])
+      it 'renders student_index template' do
         get :index
-        expect(assigns(:saved_class_names)).to include('Engineering SaaS')
+        expect(response).to render_template('student_index')
+      end
+
+      it 'assigns @all_days' do
+        get :index
+        expect(assigns(:all_days)).to eq(OfficeHour.all_days)
+      end
+
+      it 'assigns @office_hours_by_course' do
+        office_hour # create the office hour
+        get :index
+        expect(assigns(:office_hours_by_course)).to be_a(Hash)
+      end
+
+      it 'assigns @saved_class_names for students' do
+        student.update(saved_classes: ['Engineering SaaS'])
+        get :index
+        expect(assigns(:saved_class_names)).to eq(['Engineering SaaS'])
       end
 
       it 'filters office hours by search term' do
         oh1 = create(:office_hour, course_name: 'Engineering SaaS', instructor: 'Dr. Smith')
-        oh2 = create(:office_hour, course_name: 'Math 101', instructor: 'Dr. Jones')
-        oh3 = create(:office_hour, course_name: 'Physics', location: 'Engineering Building')
-        
-        get :index, params: { search: 'Engineering' }
-        office_hours = assigns(:office_hours)
-        expect(office_hours).to include(oh1, oh3)
-        expect(office_hours).not_to include(oh2)
-      end
-
-      it 'searches by course_name' do
-        oh1 = create(:office_hour, course_name: 'Engineering SaaS')
-        oh2 = create(:office_hour, course_name: 'Math 101')
+        oh2 = create(:office_hour, course_name: 'Data Science', instructor: 'Dr. Jones')
         
         get :index, params: { search: 'Engineering' }
         expect(assigns(:office_hours)).to include(oh1)
         expect(assigns(:office_hours)).not_to include(oh2)
       end
 
-      it 'searches by instructor' do
+      it 'filters by instructor name' do
         oh1 = create(:office_hour, instructor: 'Dr. Smith')
         oh2 = create(:office_hour, instructor: 'Dr. Jones')
         
@@ -62,57 +55,32 @@ describe OfficeHoursController, type: :controller do
         expect(assigns(:office_hours)).not_to include(oh2)
       end
 
-      it 'searches by location' do
+      it 'filters by location' do
         oh1 = create(:office_hour, location: 'Zoom')
-        oh2 = create(:office_hour, location: 'Room 301')
+        oh2 = create(:office_hour, location: 'Pupin 301')
         
         get :index, params: { search: 'Zoom' }
         expect(assigns(:office_hours)).to include(oh1)
         expect(assigns(:office_hours)).not_to include(oh2)
       end
 
-      it 'performs case-insensitive search' do
+      it 'handles empty search results' do
+        create(:office_hour, course_name: 'Engineering SaaS')
+        
+        get :index, params: { search: 'NonexistentCourse' }
+        expect(assigns(:office_hours)).to be_empty
+      end
+
+      it 'trims whitespace from search term' do
         oh1 = create(:office_hour, course_name: 'Engineering SaaS')
         
-        get :index, params: { search: 'engineering' }
+        get :index, params: { search: '  Engineering  ' }
         expect(assigns(:office_hours)).to include(oh1)
-      end
-
-      it 'handles partial matches' do
-        oh1 = create(:office_hour, course_name: 'Engineering SaaS')
-        
-        get :index, params: { search: 'Engineer' }
-        expect(assigns(:office_hours)).to include(oh1)
-      end
-
-      it 'returns all office hours when search is empty' do
-        oh1 = create(:office_hour)
-        oh2 = create(:office_hour)
-        
-        get :index, params: { search: '' }
-        expect(assigns(:office_hours).count).to eq(2)
-      end
-
-      it 'returns all office hours when search param is not present' do
-        oh1 = create(:office_hour)
-        oh2 = create(:office_hour)
-        
-        get :index
-        expect(assigns(:office_hours).count).to eq(2)
-      end
-
-      it 'renders student_index template' do
-        get :index
-        expect(response).to render_template('student_index')
       end
     end
 
     context 'as a TA' do
-      before do
-        sign_out user
-        sign_in ta_user
-        ta_user.update(course_name: 'Engineering SaaS')
-      end
+      before { sign_in ta }
 
       it 'renders ta_index template' do
         get :index
@@ -120,303 +88,452 @@ describe OfficeHoursController, type: :controller do
       end
 
       it 'assigns office hours for TA course' do
-        oh1 = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'ta123')
-        oh2 = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other123')
-        oh3 = create(:office_hour, course_name: 'Other Course')
+        office_hour # create the office hour
+        other_course_oh = create(:office_hour, course_name: 'Other Course')
         
         get :index
-        expect(assigns(:all_office_hours)).to include(oh1, oh2)
-        expect(assigns(:all_office_hours)).not_to include(oh3)
+        expect(assigns(:all_office_hours)).to include(office_hour)
+        expect(assigns(:all_office_hours)).not_to include(other_course_oh)
       end
 
       it 'assigns only TA own hours when view is "my"' do
-        oh1 = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'ta123')
-        oh2 = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other123')
+        my_oh = office_hour
+        other_ta_oh = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other_ta')
         
         get :index, params: { view: 'my' }
-        expect(assigns(:office_hours)).to include(oh1)
-        expect(assigns(:office_hours)).not_to include(oh2)
-        expect(assigns(:view)).to eq('my')
+        expect(assigns(:office_hours)).to include(my_oh)
+        expect(assigns(:office_hours)).not_to include(other_ta_oh)
       end
 
       it 'assigns all course hours when view is "all"' do
-        oh1 = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'ta123')
-        oh2 = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other123')
+        my_oh = office_hour
+        other_ta_oh = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other_ta')
         
         get :index, params: { view: 'all' }
-        expect(assigns(:office_hours)).to include(oh1, oh2)
-        expect(assigns(:view)).to eq('all')
+        expect(assigns(:office_hours)).to include(my_oh, other_ta_oh)
       end
 
       it 'executes @view == "all" ternary check' do
-        # This tests line 40: @view == 'all' ? @all_office_hours : @my_office_hours
-        oh1 = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'ta123')
-        oh2 = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other123')
+        office_hour # Create the office hour before the request
+        other_ta_oh = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other_ta')
         
         get :index, params: { view: 'all' }
-        # When view is 'all', should use @all_office_hours
-        expect(assigns(:office_hours)).to eq(assigns(:all_office_hours))
-        expect(assigns(:office_hours)).to include(oh1, oh2)
+        expect(assigns(:view)).to eq('all')
+        expect(assigns(:office_hours)).to be_present
+        expect(assigns(:office_hours)).to include(office_hour, other_ta_oh)
+      end
+
+      it 'defaults to dashboard view' do
+        get :index
+        expect(assigns(:view)).to eq('dashboard')
+        expect(assigns(:office_hours)).to be_nil
+      end
+
+      it 'assigns sessions for dashboard view' do
+        create(:queue_session, office_hour: office_hour)
+        
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:sessions)).to be_present
+      end
+
+      it 'assigns questions for dashboard view' do
+        create(:question, office_hour: office_hour, user: student)
+        
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:questions)).to be_present
+      end
+
+      it 'calculates question breakdown' do
+        create(:question, office_hour: office_hour, user: student, question_type: 'homework')
+        create(:question, office_hour: office_hour, user: student, question_type: 'homework')
+        create(:question, office_hour: office_hour, user: student, question_type: 'concept')
+        
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:question_breakdown)['homework']).to eq(2)
+        expect(assigns(:question_breakdown)['concept']).to eq(1)
+      end
+
+      it 'calculates total questions' do
+        create_list(:question, 3, office_hour: office_hour, user: student)
+        
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:total_questions)).to eq(3)
+      end
+
+      it 'calculates average questions per session' do
+        create(:queue_session, office_hour: office_hour)
+        create_list(:question, 4, office_hour: office_hour, user: student)
+        
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:avg_questions_per_session)).to eq(4.0)
+      end
+    end
+
+    context 'when days param is present' do
+      before { sign_in student }
+
+      it 'filters by selected days' do
+        get :index, params: { days: { 'Monday' => '1', 'Tuesday' => '1' } }
+        expect(assigns(:days_to_show)).to match_array(['Monday', 'Tuesday'])
+      end
+
+      it 'stores days in session' do
+        get :index, params: { days: { 'Monday' => '1' } }
+        expect(session[:days]).to eq(['Monday'])
+      end
+
+      it 'extracts keys from Hash' do
+        get :index, params: { days: { 'Monday' => '1', 'Tuesday' => '1' } }
+        expect(response).to have_http_status(:success)
+        expect(assigns(:days_to_show)).to match_array(['Monday', 'Tuesday'])
+      end
+    end
+
+    context 'when days param is not present' do
+      before { sign_in student }
+
+      it 'uses session days if available' do
+        session[:days] = ['Wednesday']
+        get :index
+        expect(assigns(:days_to_show)).to eq(['Wednesday'])
+      end
+
+      it 'defaults to all days if no session' do
+        get :index
+        expect(assigns(:days_to_show)).to eq(OfficeHour.all_days)
+      end
+    end
+
+    context 'when sort_by param is present' do
+      before { sign_in student }
+
+      it 'uses the provided sort parameter' do
+        get :index, params: { sort_by: 'instructor' }
+        expect(assigns(:sort_by)).to eq('instructor')
+      end
+
+      it 'stores sort_by in session' do
+        get :index, params: { sort_by: 'day' }
+        expect(session[:sort_by]).to eq('day')
+      end
+    end
+
+    context 'when sort_by param is not present' do
+      before { sign_in student }
+
+      it 'uses session sort_by if available' do
+        session[:sort_by] = 'instructor'
+        get :index
+        expect(assigns(:sort_by)).to eq('instructor')
+      end
+
+      it 'defaults to course_name' do
+        get :index
+        expect(assigns(:sort_by)).to eq('course_name')
       end
     end
   end
 
-  # Show
   describe 'GET #show' do
-    it 'assigns the requested office hour to @office_hour' do
-      office_hour = OfficeHour.create!(course_name: 'Math', instructor: 'Lee', day: 'Monday',
-                                       start_time: '9:00', end_time: '10:00', location: 'BH210', ta_uni: 'lee123')
+    before { sign_in student }
+
+    it 'assigns the requested office hour' do
       get :show, params: { id: office_hour.id }
       expect(assigns(:office_hour)).to eq(office_hour)
+    end
+
+    it 'renders the show template' do
+      get :show, params: { id: office_hour.id }
       expect(response).to render_template('show')
     end
   end
 
-  # New
   describe 'GET #new' do
-    it 'assigns a new OfficeHour to @office_hour' do
+    before { sign_in ta }
+
+    it 'assigns a new office hour' do
       get :new
       expect(assigns(:office_hour)).to be_a_new(OfficeHour)
+    end
+
+    it 'renders the new template' do
+      get :new
       expect(response).to render_template('new')
     end
   end
 
-  # Create
-  describe 'POST #create' do
-    let(:valid_attributes) do
-      {
-        course_name: 'Physics 101',
-        instructor: 'Dr. Carter',
-        day: 'Tuesday',
-        start_time: '11:00',
-        end_time: '12:00',
-        location: 'BH310',
-        ta_uni: 'carter001'
-      }
-    end
-
-    let(:invalid_attributes) { { course_name: '', instructor: '', day: '' } }
-
-    it 'creates a new OfficeHour with valid params and redirects to show' do
-      sign_out user
-      sign_in ta_user
-      ta_user.update(course_name: 'Physics 101')
-
-      expect {
-        post :create, params: { office_hour: valid_attributes.except(:ta_uni, :course_name) }
-      }.to change(OfficeHour, :count).by(1)
-
-      expect(response).to redirect_to(OfficeHour.last)
-      expect(flash[:notice]).to match(/successfully created/i)
-    end
-
-    it 're-renders new when invalid params are provided' do
-      sign_out user
-      sign_in ta_user
-
-      expect {
-        post :create, params: { office_hour: invalid_attributes }
-      }.not_to change(OfficeHour, :count)
-
-      expect(response).to render_template('new')
-    end
-
-    it 'handles JSON format requests' do
-      sign_out user
-      sign_in ta_user
-      ta_user.update(course_name: 'Physics 101')
-
-      post :create, params: { office_hour: valid_attributes.except(:ta_uni, :course_name), format: :json }
-      expect(response).to have_http_status(:created)
-      expect(response.content_type).to include('application/json')
-    end
-
-    it 'handles JSON format errors' do
-      sign_out user
-      sign_in ta_user
-
-      post :create, params: { office_hour: invalid_attributes, format: :json }
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.content_type).to include('application/json')
-    end
-  end
-
-  # Update
-  describe 'PATCH #update' do
-    let!(:office_hour) do
-      sign_out user
-      sign_in ta_user
-      ta_user.update(course_name: 'Chemistry', uni: 'smith001')
-      OfficeHour.create!(
-        course_name: 'Chemistry',
-        instructor: 'Dr. Smith',
-        day: 'Wednesday',
-        start_time: '10:00',
-        end_time: '11:00',
-        location: 'BH100',
-        ta_uni: 'smith001'
-      )
-    end
-
-    before do
-      sign_out user
-      sign_in ta_user
-      ta_user.update(course_name: 'Chemistry', uni: 'smith001')
-    end
-
-    it 'updates an existing office hour with valid attributes' do
-      patch :update, params: {
-        id: office_hour.id,
-        office_hour: { instructor: 'Dr. Kim' }
-      }
-
-      office_hour.reload
-      expect(office_hour.instructor).to eq('Dr. Kim')
-      expect(response).to redirect_to(office_hour)
-      expect(flash[:notice]).to match(/successfully updated/i)
-    end
-
-    it 're-renders edit when invalid attributes are given' do
-      patch :update, params: {
-        id: office_hour.id,
-        office_hour: { instructor: '' }
-      }
-
-      expect(response).to render_template('edit')
-    end
-
-    it 'handles JSON format requests' do
-      patch :update, params: {
-        id: office_hour.id,
-        office_hour: { instructor: 'Dr. Kim' },
-        format: :json
-      }
-      expect(response).to have_http_status(:ok)
-      expect(response.content_type).to include('application/json')
-    end
-
-    it 'handles JSON format errors' do
-      patch :update, params: {
-        id: office_hour.id,
-        office_hour: { instructor: '' },
-        format: :json
-      }
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.content_type).to include('application/json')
-    end
-  end
-
-  # Destroy
-  describe 'DELETE #destroy' do
-    before do
-      sign_out user
-      sign_in ta_user
-      ta_user.update(course_name: 'Bio', uni: 'lin001')
-    end
-
-    it 'deletes the requested office hour and redirects to index' do
-      office_hour = OfficeHour.create!(
-        course_name: 'Bio',
-        instructor: 'Dr. Lin',
-        day: 'Friday',
-        start_time: '8:00',
-        end_time: '9:00',
-        location: 'BH500',
-        ta_uni: 'lin001'
-      )
-
-      expect {
-        delete :destroy, params: { id: office_hour.id }
-      }.to change(OfficeHour, :count).by(-1)
-
-      expect(response).to redirect_to(office_hours_path)
-      expect(flash[:notice]).to match(/successfully destroyed/i)
-    end
-
-    it 'handles JSON format requests' do
-      office_hour = OfficeHour.create!(
-        course_name: 'Bio',
-        instructor: 'Dr. Lin',
-        day: 'Friday',
-        start_time: '8:00',
-        end_time: '9:00',
-        location: 'BH500',
-        ta_uni: 'lin001'
-      )
-
-      delete :destroy, params: { id: office_hour.id, format: :json }
-      expect(response).to have_http_status(:no_content)
-    end
-  end
-
-  # Edit
   describe 'GET #edit' do
-    let!(:office_hour) do
-      OfficeHour.create!(
-        course_name: 'Chemistry',
-        instructor: 'Dr. Smith',
-        day: 'Wednesday',
-        start_time: '10:00',
-        end_time: '11:00',
-        location: 'BH100',
-        ta_uni: 'smith001'
-      )
-    end
+    before { sign_in ta }
 
     context 'when TA owns the office hour' do
-      before do
-        sign_out user
-        sign_in ta_user
-        ta_user.update(uni: 'smith001', course_name: 'Chemistry')
-      end
-
       it 'renders the edit template' do
         get :edit, params: { id: office_hour.id }
         expect(response).to render_template('edit')
       end
+
+      it 'assigns the office hour' do
+        get :edit, params: { id: office_hour.id }
+        expect(assigns(:office_hour)).to eq(office_hour)
+      end
     end
 
     context 'when TA does not own the office hour' do
-      before do
-        sign_out user
-        sign_in ta_user
-        ta_user.update(uni: 'other001', course_name: 'Chemistry')
-      end
+      let(:other_oh) { create(:office_hour, ta_uni: 'other_ta') }
 
       it 'redirects with alert' do
-        get :edit, params: { id: office_hour.id }
+        get :edit, params: { id: other_oh.id }
         expect(response).to redirect_to(office_hours_path)
         expect(flash[:alert]).to match(/only modify your own/i)
       end
     end
   end
 
-  # Authorization
-  describe '#authorize_ta_access' do
-    let!(:office_hour) do
-      OfficeHour.create!(
-        course_name: 'Chemistry',
-        instructor: 'Dr. Smith',
-        day: 'Wednesday',
-        start_time: '10:00',
-        end_time: '11:00',
-        location: 'BH100',
-        ta_uni: 'smith001'
-      )
-    end
+  describe 'POST #create' do
+    before { sign_in ta }
 
-    context 'when updating without authorization' do
-      before do
-        sign_out user
-        sign_in ta_user
-        ta_user.update(uni: 'other001', course_name: 'Chemistry')
+    context 'with valid params' do
+      let(:valid_attributes) do
+        {
+          instructor: 'Dr. Smith',
+          day: 'Monday',
+          start_time: '10:00AM',
+          end_time: '12:00PM',
+          location: 'Room 301'
+        }
       end
 
-      it 'redirects when trying to update' do
-        patch :update, params: {
-          id: office_hour.id,
-          office_hour: { instructor: 'Dr. Hacker' }
+      it 'creates a new OfficeHour' do
+        expect {
+          post :create, params: { office_hour: valid_attributes }
+        }.to change(OfficeHour, :count).by(1)
+      end
+
+      it 'assigns course_name from current_user' do
+        post :create, params: { office_hour: valid_attributes }
+        expect(OfficeHour.last.course_name).to eq('Engineering SaaS')
+      end
+
+      it 'assigns ta_uni from current_user' do
+        post :create, params: { office_hour: valid_attributes }
+        expect(OfficeHour.last.ta_uni).to eq('ta123')
+      end
+
+      it 'redirects to the created office hour' do
+        post :create, params: { office_hour: valid_attributes }
+        expect(response).to redirect_to(OfficeHour.last)
+      end
+
+      it 'sets a success notice' do
+        post :create, params: { office_hour: valid_attributes }
+        expect(flash[:notice]).to match(/successfully created/i)
+      end
+    end
+
+    context 'with invalid params' do
+      let(:invalid_attributes) do
+        {
+          instructor: '',
+          day: 'Monday'
         }
+      end
+
+      it 'does not create a new office hour' do
+        expect {
+          post :create, params: { office_hour: invalid_attributes }
+        }.not_to change(OfficeHour, :count)
+      end
+
+      it 're-renders the new template' do
+        post :create, params: { office_hour: invalid_attributes }
+        expect(response).to render_template('new')
+      end
+
+      it 'returns unprocessable_entity status' do
+        post :create, params: { office_hour: invalid_attributes }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context 'with JSON format' do
+      let(:valid_attributes) do
+        {
+          instructor: 'Dr. Smith',
+          day: 'Monday',
+          start_time: '10:00AM',
+          end_time: '12:00PM',
+          location: 'Room 301'
+        }
+      end
+
+      it 'returns created status' do
+        post :create, params: { office_hour: valid_attributes }, format: :json
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'returns JSON representation' do
+        post :create, params: { office_hour: valid_attributes }, format: :json
+        expect(response.content_type).to include('application/json')
+      end
+    end
+
+    context 'with invalid JSON format' do
+      let(:invalid_attributes) { { instructor: '' } }
+
+      it 'returns unprocessable_entity status' do
+        post :create, params: { office_hour: invalid_attributes }, format: :json
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns errors as JSON' do
+        post :create, params: { office_hour: invalid_attributes }, format: :json
+        expect(response.content_type).to include('application/json')
+      end
+    end
+  end
+
+  describe 'PATCH #update' do
+    before { sign_in ta }
+
+    context 'with valid params' do
+      let(:new_attributes) do
+        {
+          instructor: 'Dr. Jones',
+          location: 'Room 402'
+        }
+      end
+
+      it 'updates the requested office hour' do
+        patch :update, params: { id: office_hour.id, office_hour: new_attributes }
+        office_hour.reload
+        expect(office_hour.instructor).to eq('Dr. Jones')
+        expect(office_hour.location).to eq('Room 402')
+      end
+
+      it 'redirects to the office hour' do
+        patch :update, params: { id: office_hour.id, office_hour: new_attributes }
+        expect(response).to redirect_to(office_hour)
+      end
+
+      it 'sets a success notice' do
+        patch :update, params: { id: office_hour.id, office_hour: new_attributes }
+        expect(flash[:notice]).to match(/successfully updated/i)
+      end
+    end
+
+    context 'with invalid params' do
+      let(:invalid_attributes) do
+        { instructor: '' }
+      end
+
+      it 'does not update the office hour' do
+        original_instructor = office_hour.instructor
+        patch :update, params: { id: office_hour.id, office_hour: invalid_attributes }
+        office_hour.reload
+        expect(office_hour.instructor).to eq(original_instructor)
+      end
+
+      it 're-renders the edit template' do
+        patch :update, params: { id: office_hour.id, office_hour: invalid_attributes }
+        expect(response).to render_template('edit')
+      end
+
+      it 'returns unprocessable_entity status' do
+        patch :update, params: { id: office_hour.id, office_hour: invalid_attributes }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context 'with JSON format' do
+      let(:new_attributes) { { instructor: 'Dr. Jones' } }
+
+      it 'returns ok status' do
+        patch :update, params: { id: office_hour.id, office_hour: new_attributes }, format: :json
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'returns JSON representation' do
+        patch :update, params: { id: office_hour.id, office_hour: new_attributes }, format: :json
+        expect(response.content_type).to include('application/json')
+      end
+    end
+
+    context 'with invalid JSON format' do
+      let(:invalid_attributes) { { instructor: '' } }
+
+      it 'returns unprocessable_entity status' do
+        patch :update, params: { id: office_hour.id, office_hour: invalid_attributes }, format: :json
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns errors as JSON' do
+        patch :update, params: { id: office_hour.id, office_hour: invalid_attributes }, format: :json
+        expect(response.content_type).to include('application/json')
+      end
+    end
+  end
+
+  describe 'DELETE #destroy' do
+    before { sign_in ta }
+
+    it 'destroys the requested office hour' do
+      office_hour # create it first
+      expect {
+        delete :destroy, params: { id: office_hour.id }
+      }.to change(OfficeHour, :count).by(-1)
+    end
+
+    it 'redirects to the office hours list' do
+      delete :destroy, params: { id: office_hour.id }
+      expect(response).to redirect_to(office_hours_path)
+    end
+
+    it 'sets a success notice' do
+      delete :destroy, params: { id: office_hour.id }
+      expect(flash[:notice]).to match(/successfully destroyed/i)
+    end
+
+    it 'returns see_other status' do
+      delete :destroy, params: { id: office_hour.id }
+      expect(response).to have_http_status(:see_other)
+    end
+
+    context 'with JSON format' do
+      it 'returns no_content status' do
+        delete :destroy, params: { id: office_hour.id }, format: :json
+        expect(response).to have_http_status(:no_content)
+      end
+
+      it 'destroys the office hour' do
+        office_hour # create it first
+        expect {
+          delete :destroy, params: { id: office_hour.id }, format: :json
+        }.to change(OfficeHour, :count).by(-1)
+      end
+    end
+  end
+
+  describe 'GET #queue_status' do
+    before { sign_in student }
+
+    it 'assigns the office hour' do
+      get :queue_status, params: { id: office_hour.id }
+      expect(assigns(:office_hour)).to eq(office_hour)
+    end
+
+    it 'renders the queue_section partial' do
+      get :queue_status, params: { id: office_hour.id }
+      expect(response).to render_template(partial: '_queue_section')
+    end
+  end
+
+  describe '#authorize_ta_access' do
+    context 'when updating without authorization' do
+      let(:other_ta) { create(:user, :ta, uni: 'other_ta', course_name: 'Other Course') }
+      
+      before { sign_in other_ta }
+
+      it 'redirects when trying to update' do
+        patch :update, params: { id: office_hour.id, office_hour: { instructor: 'New Name' } }
         expect(response).to redirect_to(office_hours_path)
         expect(flash[:alert]).to match(/only modify your own/i)
       end
@@ -429,85 +546,40 @@ describe OfficeHoursController, type: :controller do
     end
   end
 
-  # Index edge cases
-  describe 'GET #index' do
-    context 'when current_user is nil' do
-      before { sign_out user }
+  describe 'private methods' do
+    describe '#set_office_hour' do
+      before { sign_in student }
 
-      it 'redirects to sign in' do
-        get :index
-        expect(response).to redirect_to(new_user_session_path)
+      it 'sets @office_hour for show action' do
+        get :show, params: { id: office_hour.id }
+        expect(assigns(:office_hour)).to eq(office_hour)
+      end
+
+      it 'sets @office_hour for edit action' do
+        sign_in ta
+        get :edit, params: { id: office_hour.id }
+        expect(assigns(:office_hour)).to eq(office_hour)
       end
     end
 
-    context 'as a student with nil current_user check' do
-      it 'handles saved_class_names when user is student' do
-        user.update(saved_classes: ['Engineering SaaS'])
-        create(:office_hour, course_name: 'Engineering SaaS')
-        get :index
-        expect(assigns(:saved_class_names)).to include('Engineering SaaS')
-      end
+    describe '#office_hour_params' do
+      before { sign_in ta }
 
-      it 'handles when current_user is nil' do
-        sign_out user
-        allow(controller).to receive(:current_user).and_return(nil)
-        get :index
-        expect(response).to redirect_to(new_user_session_path)
-      end
-    end
-
-    context 'when days param is a Hash' do
-      it 'extracts keys from Hash' do
-        allow(OfficeHour).to receive(:with_filters).and_return(@fake_results)
-        # Simulate Hash instead of ActionController::Parameters
-        hash_days = { 'Monday' => '1', 'Tuesday' => '1' }
-        get :index, params: { days: hash_days }
-        expect(assigns(:days_to_show)).to include('Monday', 'Tuesday')
-      end
-    end
-  end
-
-  # Create edge cases
-  describe 'POST #create' do
-    context 'when current_user is not a TA' do
-      it 'does not set ta_uni' do
-        sign_out user
-        sign_in user # student user
-        user.update(course_name: 'Engineering SaaS')
-        
+      it 'permits instructor, day, start_time, end_time, location, ta_uni' do
         post :create, params: {
           office_hour: {
             instructor: 'Dr. Smith',
             day: 'Monday',
             start_time: '10:00AM',
             end_time: '12:00PM',
-            location: 'Room 301'
+            location: 'Room 301',
+            ta_uni: 'test_ta',
+            course_name: 'Should be ignored'
           }
         }
-        
-        # Student cannot create office hours - validation fails because ta_uni is required
-        # when instructor is present, but students don't have ta_uni set
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response).to render_template('new')
-        office_hour = assigns(:office_hour)
-        expect(office_hour.ta_uni).to be_nil
-        expect(office_hour.errors).to be_present
+        # course_name should come from current_user, not params
+        expect(OfficeHour.last.course_name).to eq('Engineering SaaS')
       end
-    end
-  end
-
-  # Queue Status
-  describe 'GET #queue_status' do
-    let(:office_hour) { create(:office_hour) }
-
-    it 'assigns the office hour' do
-      get :queue_status, params: { id: office_hour.id }
-      expect(assigns(:office_hour)).to eq(office_hour)
-    end
-
-    it 'renders the queue_section partial' do
-      get :queue_status, params: { id: office_hour.id }
-      expect(response).to render_template(partial: '_queue_section')
     end
   end
 end

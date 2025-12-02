@@ -11,14 +11,15 @@ Feature: manage questions
     And I am on the office hours home page
     When I follow "Sign in"
     And I fill in "UNI" with "student123"
+    And I press "Continue"
     And I fill in "Password" with "password123"
-    And I press "Log in"
+    And I press "Sign In"
     And I follow "Show this office hour" for "Math 101"
     When I fill in "question_question_text" with "Original question text"
     And I press "Submit Question"
 
   Scenario: edit my question
-    When I follow "Edit"
+    When I follow "Edit Question"
     Then I should be on the edit question page
     And I should see "Original question text"
     When I fill in "question_question_text" with "Updated question text"
@@ -41,7 +42,7 @@ Feature: manage questions
     And I follow "Sign in"
     And I fill in "UNI" with "student456"
     And I fill in "Password" with "password123"
-    And I press "Log in"
+    And I press "Sign In"
     And I follow "Show this office hour" for "Math 101"
     Then I should see "Original question text"
     And I should not see "Edit"

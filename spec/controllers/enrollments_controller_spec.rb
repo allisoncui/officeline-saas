@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe EnrollmentsController, type: :controller do
   let(:student) { create(:user, role: 'student', uni: 'student123') }
-  let(:ta) { create(:user, role: 'ta', uni: 'ta123') }
+  let(:ta) { create(:user, role: 'ta', uni: 'ta123', course_name: 'Engineering SaaS') }
   let(:office_hour) { create(:office_hour) }
 
   describe 'POST #create' do
@@ -123,4 +123,3 @@ RSpec.describe EnrollmentsController, type: :controller do
     end
   end
 end
-

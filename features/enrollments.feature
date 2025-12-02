@@ -8,8 +8,9 @@ Feature: save office hours to my classes
     And I am on the office hours home page
     When I follow "Sign in"
     And I fill in "UNI" with "student123"
+    And I press "Continue"
     And I fill in "Password" with "password123"
-    And I press "Log in"
+    And I press "Sign In"
     Then I should be on the office hours home page
 
   Scenario: save an office hour to my classes
@@ -45,4 +46,3 @@ Feature: save office hours to my classes
     And I should see "My Saved Classes"
     And I should see "Math 101"
     And I should not see "Physics 201"
-

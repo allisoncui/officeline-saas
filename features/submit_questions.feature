@@ -13,8 +13,9 @@ Background: I am logged in as a student
   And I am on the office hours home page
   When I follow "Sign in"
   And I fill in "UNI" with "student123"
+  And I press "Continue"
   And I fill in "Password" with "password123"
-  And I press "Log in"
+  And I press "Sign In"
   Then I should be on the office hours home page
   Then 2 seed office hours should exist
 

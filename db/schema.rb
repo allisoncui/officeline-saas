@@ -71,7 +71,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_01_014714) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["office_hour_id"], name: "index_queue_sessions_on_office_hour_id"
-    t.index ["started_at"], name: "index_queue_sessions_on_started_at"
   end
 
   create_table "users", force: :cascade do |t|
@@ -81,9 +80,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_01_014714) do
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
     t.string "role"
+    t.string "course_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "course_name"
     t.text "saved_classes", default: "[]"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uni", "role"], name: "index_users_on_uni_and_role", unique: true

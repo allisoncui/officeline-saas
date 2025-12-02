@@ -13,23 +13,23 @@ Feature: calendar view of office hours
     And I am on the office hours home page
     When I follow "Sign in"
     And I fill in "UNI" with "student123"
+    And I press "Continue"
     And I fill in "Password" with "password123"
-    And I press "Log in"
+    And I press "Sign In"
     Then I should be on the office hours home page
 
   Scenario: toggle to calendar view
     Then I should see office hours in list format
-    When I check the calendar toggle
+    When I follow "Calendar View"
     Then I should see the calendar view
     And I should see "Engineering SaaS"
     And I should see "Advanced Programming"
     And I should see "Data Structures"
 
   Scenario: toggle back to list view
-    When I check the calendar toggle
+    When I follow "Calendar View"
     Then I should see the calendar view
-    When I uncheck the calendar toggle
+    When I follow "List View"
     Then I should see office hours in list format
     And I should see "Engineering SaaS"
     And I should see "Advanced Programming"
-
