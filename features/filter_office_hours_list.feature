@@ -1,34 +1,29 @@
-Feature: display list of office hours filtered by day of week
-  As a busy student
-  So that I can quickly find office hours on days I'm available
-  I want to see office hours matching only certain days
+Feature: display list of office hours filtered by day
 
-  Background: I am logged in as a student
+  Background:
     Given a student user exists with UNI "student123" and password "password123"
     And the following office hours exist:
-      | course_name                    | instructor            | day       | start_time | end_time | location          | ta_uni |
-      | Engineering SaaS               | Junfeng Yang          | Tuesday   | 3:00PM     | 5:00PM   | Zoom              | yj123  |
-      | Advanced Programming           | Jae Woo Lee           | Monday    | 1:00PM     | 3:00PM   | Pupin 301         | jl123  |
-      | Data Structures                | Paul Blaer            | Wednesday | 2:00PM     | 4:00PM   | Lehman 301        | pb123  |
-      | Data Structures                | Paul Blaer            | Thursday  | 10:00AM    | 12:00PM  | IAB 417           | pb124  |
-      | Buddhism                       | Michael Como          | Tuesday   | 8:00AM     | 10:00AM  | Zoom              | mc123  |
-      | Art Humanities                 | Ioannis Mylonopoulos  | Tuesday   | 5:00PM     | 7:00PM   | Schermerhorn 608  | im123  |
-      | Intermediate Macroeconomics    | Irasema Alonso        | Thursday  | 1:00PM     | 3:00PM   | Uris 301          | ia123  |
-      | Natural Language Processing    | Daniel Bauer          | Wednesday | 2:00PM     | 4:00PM   | NOCO 501          | db123  |
-      | Discrete Mathematics           | Ansaf Salleb          | Monday    | 4:00PM     | 6:00PM   | Pupin 428         | as123  |
-      | Linear Algebra                 | George Dragomir       | Friday    | 12:00PM    | 2:00PM   | Math 312          | gd123  |
-    And I am on the office hours home page
-    When I follow "Sign in"
-    And I fill in "UNI" with "student123"
-    And I press "Continue"
-    And I fill in "Password" with "password123"
-    And I press "Sign In"
-    Then I should be on the office hours home page
+      | course_name                 | instructor         | day       | start_time | end_time | location        | ta_uni |
+      | Engineering SaaS            | Junfeng Yang       | Tuesday   | 3:00PM     | 5:00PM   | Zoom            | y001   |
+      | Advanced Programming        | Jae Woo Lee        | Monday    | 1:00PM     | 3:00PM   | Pupin 301       | y002   |
+      | Data Structures             | Paul Blaer         | Wednesday | 2:00PM     | 4:00PM   | Lehman 301      | y003   |
+      | Data Structures             | Paul Blaer         | Thursday  | 10:00AM    | 12:00PM  | IAB 417         | y004   |
+      | Buddhism                    | Michael Como       | Tuesday   | 8:00AM     | 10:00AM  | Zoom            | y005   |
+      | Art Humanities              | Ioannis Mylonopoulos| Tuesday  | 5:00PM     | 7:00PM   | Schermerhorn 608| y006   |
+      | Intermediate Macroeconomics | Irasema Alonso     | Thursday  | 1:00PM     | 3:00PM   | Uris 301        | y007   |
+      | Natural Language Processing | Daniel Bauer       | Wednesday | 2:00PM     | 4:00PM   | NOCO 501        | y008   |
+      | Discrete Mathematics        | Ansaf Salleb       | Monday    | 4:00PM     | 6:00PM   | Pupin 428       | y009   |
+      | Linear Algebra              | George Dragomir    | Friday    | 12:00PM    | 2:00PM   | Math 312        | y010   |
+    And I am on the home page
+    And I sign in as "student123" with password "password123"
     Then 10 seed office hours should exist
 
-  Scenario: restrict to office hours on "Monday" or "Tuesday"
-    When I check the following days: Monday, Tuesday
-    And I uncheck the following days: Wednesday, Thursday, Friday
+  Scenario: filter for Monday or Tuesday
+    When I check "Monday"
+    And I check "Tuesday"
+    And I uncheck "Wednesday"
+    And I uncheck "Thursday"
+    And I uncheck "Friday"
     And I press "Refresh"
     Then I should see "Advanced Programming"
     And I should see "Engineering SaaS"
@@ -39,6 +34,10 @@ Feature: display list of office hours filtered by day of week
     And I should not see "Linear Algebra"
 
   Scenario: all days selected
-    When I check the following days: Monday, Tuesday, Wednesday, Thursday, Friday
+    When I check "Monday"
+    And I check "Tuesday"
+    And I check "Wednesday"
+    And I check "Thursday"
+    And I check "Friday"
     And I press "Refresh"
     Then I should see all of the office hours

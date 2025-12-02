@@ -7,7 +7,7 @@ Feature: user authentication
     Given I am on the office hours home page
     When I follow "Sign up"
     And I fill in "UNI" with "student123"
-    And I select "Student" from "Select Account Type"
+    And I choose "Student"
     And I fill in "Password" with "password123"
     And I fill in "Password confirmation" with "password123"
     And I press "Sign up"
@@ -19,7 +19,7 @@ Feature: user authentication
     Given I am on the office hours home page
     When I follow "Sign up"
     And I fill in "UNI" with "ta456"
-    And I select "TA" from "Select Account Type"
+    And I choose "TA"
     And I fill in "Course Name" with "Engineering SaaS"
     And I fill in "Password" with "password123"
     And I fill in "Password confirmation" with "password123"

@@ -19,7 +19,7 @@ Feature: student dashboard
       | Math 101    | Dr. Jones  | Tuesday  | 2:00PM     | 4:00PM   | Room 201 | tj123  |
       | Physics 201 | Dr. Brown  | Wednesday| 1:00PM     | 3:00PM   | Room 401 | tb123  |
     And I am on the office hours home page
-    And I press "Save to My Classes" for "Math 101"
+    And I press "Save Class" for "Math 101"
     And I follow "My Classes"
     Then I should be on the my classes page
     And I should see "My Saved Classes"
@@ -33,8 +33,8 @@ Feature: student dashboard
       | Math 101    | Dr. Jones  | Tuesday  | 2:00PM     | 4:00PM   | Room 201 | tj123  |
       | Physics 201 | Dr. Brown  | Wednesday| 1:00PM     | 3:00PM   | Room 401 | tb123  |
     And I am on the office hours home page
-    And I press "Save to My Classes" for "Math 101"
-    And I press "Save to My Classes" for "Physics 201"
+    And I press "Save Class" for "Math 101"
+    And I press "Save Class" for "Physics 201"
     And I follow "My Classes"
     When I check the following days: Tuesday
     And I uncheck the following days: Wednesday, Thursday, Friday

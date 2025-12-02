@@ -1,13 +1,13 @@
 Feature: manage office hours
-  As an administrator
+  As a TA
   So that I can manage office hour schedules
   I want to create, view, update, and delete office hours
 
-  Background: I am logged in as a TA
+  Background: logged in as a TA
     Given a TA user exists with UNI "ta123" and password "password123" and course "Computer Science 101"
     And I am on the office hours home page
     When I follow "Sign in"
-    And I fill in "UNI" with "student123"
+    And I fill in "UNI" with "ta123"
     And I press "Continue"
     And I fill in "Password" with "password123"
     And I press "Sign In"
@@ -32,8 +32,8 @@ Feature: manage office hours
 
   Scenario: view an existing office hour
     Given the following office hours exist:
-      | course_name | instructor | day      | start_time | end_time | location | ta_uni |
-      | Computer Science 101 | Dr. Jones  | Tuesday  | 2:00PM     | 4:00PM   | Room 201 | ta123  |
+      | course_name         | instructor | day     | start_time | end_time | location | ta_uni |
+      | Computer Science 101 | Dr. Jones | Tuesday | 2:00PM     | 4:00PM   | Room 201 | ta123  |
     When I am on the office hours home page
     And I follow "Show this office hour" for "Computer Science 101"
     Then I should be on the office hour detail page
@@ -46,8 +46,8 @@ Feature: manage office hours
 
   Scenario: update an existing office hour
     Given the following office hours exist:
-      | course_name | instructor | day      | start_time | end_time | location | ta_uni |
-      | Computer Science 101 | Dr. Brown  | Wednesday| 1:00PM     | 3:00PM   | Room 401 | ta123  |
+      | course_name         | instructor | day       | start_time | end_time | location | ta_uni |
+      | Computer Science 101 | Dr. Brown | Wednesday | 1:00PM     | 3:00PM   | Room 401 | ta123  |
     When I am on the office hours home page
     And I follow "Show this office hour" for "Computer Science 101"
     And I follow "Edit Office Hour"
@@ -62,12 +62,11 @@ Feature: manage office hours
 
   Scenario: delete an office hour
     Given the following office hours exist:
-      | course_name | instructor | day      | start_time | end_time | location | ta_uni |
-      | Computer Science 101   | Dr. White  | Thursday | 9:00AM     | 11:00AM  | Room 501 | ta123  |
+      | course_name         | instructor | day      | start_time | end_time | location | ta_uni |
+      | Computer Science 101 | Dr. White | Thursday | 9:00AM     | 11:00AM  | Room 501 | ta123  |
     When I am on the office hours home page
     And I follow "Show this office hour" for "Computer Science 101"
     And I press "Delete"
     Then I should be on the office hours home page
     And I should not see "Computer Science 101"
     And I should not see "Dr. White"
-
