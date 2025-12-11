@@ -1,48 +1,75 @@
+<% office_hour ||= @office_hour %>
+
 <div id="queue-content">
   <% if current_user&.ta? %>
     <!-- TA VIEW -->
     <div style="margin-bottom: 16px;">
-      <% if @office_hour.queue_active? %>
+      <% if office_hour.queue_active? %>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-          <span style="padding: 4px 12px; background: #10b981; color: white; border-radius: 6px; font-weight: 600;">
+          <span style="display: inline-block; padding: 6px 14px; background: #10b981; color: white; border-radius: 20px; font-weight: 600; font-size: 0.875rem; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);">
             Queue Active
           </span>
           <span style="color: #6b7280;">
-            Started <%= time_ago_in_words(@office_hour.queue_started_at) %> ago
+            Started <%= time_ago_in_words(office_hour.queue_started_at) %> ago
           </span>
         </div>
         
-        <%= button_to 'Close Queue',
-                      office_hour_close_queue_path(@office_hour),
-                      method: :post,
-                      class: 'ol-btn',
-                      style: 'background: #ef4444; color: white;',
-                      data: { confirm: 'Are you sure you want to close the queue?' } %>
+        <!-- Two Close Queue Options -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <%= button_to 'Soft Close Queue',
+                        soft_close_queue_office_hour_path(office_hour),
+                        method: :post,
+                        class: 'ol-btn',
+                        style: 'background: #f59e0b; color: white;',
+                        data: { confirm: 'Close queue to new students but keep existing students in line?' },
+                        title: 'Stop accepting new students, but serve students already in queue' %>
+          
+          <%= button_to 'Hard Close Queue',
+                        hard_close_queue_office_hour_path(office_hour),
+                        method: :post,
+                        class: 'ol-btn',
+                        style: 'background: #ef4444; color: white;',
+                        data: { confirm: 'Remove ALL students from queue and close it? This cannot be undone!' },
+                        title: 'Remove all students from queue and close it' %>
+        </div>
+        
+        <div style="margin-top: 10px; padding: 10px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
+          <p style="margin: 0; font-size: 0.85rem; color: #92400e;">
+            <strong>Tip:</strong> Use <strong>Soft Close</strong> to stop new students from joining while you finish helping those already in line. Use <strong>Hard Close</strong> to remove all students.
+          </p>
+        </div>
+        
       <% else %>
         <div style="margin-bottom: 12px;">
-          <span style="padding: 4px 12px; background: #6b7280; color: white; border-radius: 6px;">
+          <span style="display: inline-block; padding: 6px 14px; background: #6b7280; color: white; border-radius: 20px; font-weight: 600; font-size: 0.875rem; box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);">
             Queue Inactive
           </span>
+          
+          <% if office_hour.queue_entries.where(status: 'waiting').any? %>
+            <p style="margin: 8px 0; padding: 8px 12px; background: #fef3c7; border-radius: 6px; font-size: 0.9rem; color: #92400e;">
+              Queue is closed but <%= pluralize(office_hour.queue_entries.where(status: 'waiting').count, 'student') %> still waiting to be served
+            </p>
+          <% end %>
         </div>
         
         <%= button_to 'Start Queue',
-                      office_hour_start_queue_path(@office_hour),
+                      start_queue_office_hour_path(office_hour),
                       method: :post,
                       class: 'ol-btn',
                       style: 'background: #10b981; color: white;' %>
       <% end %>
     </div>
     
-    <% if @office_hour.queue_active? && @office_hour.active_queue.any? %>
-      <h4 style="margin-top: 16px; margin-bottom: 8px;">Students in Queue (<%= @office_hour.queue_size %>)</h4>
+    <% if office_hour.active_queue.any? %>
+      <h4 style="margin-top: 16px; margin-bottom: 8px;">Students in Queue (<%= office_hour.queue_size %>)</h4>
       <div style="background: white; border-radius: 8px; padding: 12px;">
-        <% @office_hour.active_queue.each do |entry| %>
+        <% office_hour.active_queue.each do |entry| %>
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #e5e7eb;">
             <div>
               <strong>#<%= entry.position %></strong> - <%= entry.user.uni %><span style="color: #6b7280; font-size: 0.85rem; margin-left: 8px;">(joined <%= time_ago_in_words(entry.joined_at) %> ago)</span>
             </div>
             <%= button_to 'Remove',
-                          remove_student_office_hour_queue_entry_path(@office_hour, entry),
+                          remove_student_office_hour_queue_entry_path(office_hour, entry),
                           method: :delete,
                           class: 'ol-btn ol-btn-sm',
                           style: 'background: #ef4444; color: white; padding: 4px 12px; font-size: 0.85rem;',
@@ -50,28 +77,42 @@
           </div>
         <% end %>
       </div>
-    <% elsif @office_hour.queue_active? %>
-      <p style="color: #6b7280; margin-top: 12px;"><em>No students in queue yet.</em></p>
+    <% elsif !office_hour.queue_active? && office_hour.queue_entries.where(status: 'waiting').empty? %>
+      <p style="color: #6b7280; margin-top: 12px;"><em>No students in queue.</em></p>
     <% end %>
     
   <% elsif current_user&.student? %>
     <!-- STUDENT VIEW -->
-    <% if @office_hour.queue_active? %>
+    <% if office_hour.queue_active? %>
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-        <span style="padding: 4px 12px; background: #10b981; color: white; border-radius: 6px; font-weight: 600;">
-          Queue is Live!
+        <span style="display: inline-block; padding: 6px 14px; background: #10b981; color: white; border-radius: 20px; font-weight: 600; font-size: 0.875rem; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);">
+          Queue is Live
         </span>
-        <span style="color: #6b7280;">
-          <%= pluralize(@office_hour.queue_size, 'student') %> in queue
+        <span style="color: #6b7280; font-size: 0.9rem;">
+          <%= pluralize(office_hour.queue_size, 'student') %> in queue
         </span>
       </div>
       
-      <% if @office_hour.user_in_queue?(current_user) %>
-        <% student_entry = @office_hour.queue_entries.find_by(user: current_user, status: 'waiting') %>
+      <% if office_hour.user_in_queue?(current_user) %>
+        <% student_entry = office_hour.queue_entries.find_by(user: current_user, status: 'waiting') %>
+        <% user_position = office_hour.user_queue_position(current_user) %>
         
+        <% if user_position == 1 %>
+          <!-- YOU'RE NEXT NOTIFICATION (above the position info) -->
+          <div style="background: #10b981; color: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: center;">
+            <p style="margin: 0; font-weight: 700; font-size: 1.2rem;">
+              You're Next!
+            </p>
+            <p style="margin: 4px 0 0 0; font-size: 0.9rem; opacity: 0.95;">
+              Please be ready - you'll be served next
+            </p>
+          </div>
+        <% end %>
+        
+        <!-- ALWAYS show position info -->
         <div style="background: #dbeafe; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
           <p style="margin: 0; font-weight: 600;">
-            You are in the queue at position #<%= @office_hour.user_queue_position(current_user) %>
+            You are in the queue at position #<%= user_position %>
           </p>
           <p style="margin: 4px 0 0 0; font-size: 0.9rem; color: #1e40af;">
             Queue updates automatically every 3 seconds.
@@ -80,7 +121,7 @@
         
         <% if student_entry %>
           <%= button_to 'Leave Queue',
-                        office_hour_queue_entry_path(@office_hour.id, student_entry.id),
+                        office_hour_queue_entry_path(office_hour.id, student_entry.id),
                         method: :delete,
                         class: 'ol-btn',
                         style: 'background: #ef4444; color: white;',
@@ -90,7 +131,7 @@
         <% end %>
       <% else %>
         <%= button_to 'Join Queue',
-                      office_hour_queue_entries_path(@office_hour),
+                      office_hour_queue_entries_path(office_hour),
                       method: :post,
                       class: 'ol-btn',
                       style: 'background: #2563eb; color: white; font-weight: 600;' %>
@@ -99,6 +140,42 @@
           <em>Note: If multiple students join simultaneously, you may need to refresh and try again.</em>
         </p>
       <% end %>
+      
+    <% elsif !office_hour.queue_active? && office_hour.user_in_queue?(current_user) %>
+      <!-- Student is in queue but queue is closed (soft close) -->
+      <% user_position = office_hour.user_queue_position(current_user) %>
+      
+      <% if user_position == 1 %>
+        <!-- YOU'RE NEXT NOTIFICATION for soft-closed queue -->
+        <div style="background: #10b981; color: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: center;">
+          <p style="margin: 0; font-weight: 700; font-size: 1.2rem;">
+            You're Next!
+          </p>
+          <p style="margin: 4px 0 0 0; font-size: 0.9rem; opacity: 0.95;">
+            Please be ready - you'll be served next
+          </p>
+        </div>
+      <% end %>
+      
+      <div style="padding: 12px; background: #fef3c7; border-radius: 8px; border-left: 3px solid #f59e0b; margin-bottom: 12px;">
+        <p style="margin: 0 0 4px 0; font-weight: 600; color: #92400e;">
+          Queue Closed to New Students
+        </p>
+        <p style="margin: 0; font-size: 0.9rem; color: #78350f;">
+          You're still in line! The TA is finishing with students already in the queue. Your position: <strong>#<%= user_position %></strong>
+        </p>
+      </div>
+      
+      <% student_entry = office_hour.queue_entries.find_by(user: current_user, status: 'waiting') %>
+      <% if student_entry %>
+        <%= button_to 'Leave Queue',
+                      office_hour_queue_entry_path(office_hour.id, student_entry.id),
+                      method: :delete,
+                      class: 'ol-btn',
+                      style: 'background: #ef4444; color: white;',
+                      data: { confirm: 'Are you sure you want to leave the queue?' } %>
+      <% end %>
+      
     <% else %>
       <div style="padding: 12px; background: #f3f4f6; border-radius: 8px;">
         <p style="margin: 0; color: #6b7280;">

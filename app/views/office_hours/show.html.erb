@@ -17,7 +17,7 @@
 </div>
 
 <!-- TA Actions -->
-<% if current_user&.ta? && @office_hour.ta_uni == current_user.uni %>
+<% if current_user&.ta? && @office_hour.course_name == current_user.course_name %>
   <div class="ol-actions-bar" style="margin-top: 16px; display: flex; align-items: center; gap: 10px;">
     <%= link_to "Edit Office Hour",
         edit_office_hour_path(@office_hour),
@@ -43,8 +43,10 @@
 
 <!-- Auto-update script -->
 <script>
-  <% if @office_hour.queue_active? || current_user&.ta? %>
+  // Only auto-update if this specific office hour has an active queue OR if a TA is viewing with waiting students
+  <% if @office_hour.queue_active? || (current_user&.ta? && @office_hour.queue_entries.where(status: 'waiting').any?) %>
     // Auto-update queue every 3 seconds
+    const officeHourId = <%= @office_hour.id %>;
     const updateInterval = setInterval(function() {
       fetch('<%= queue_status_office_hour_path(@office_hour) %>', {
         headers: {

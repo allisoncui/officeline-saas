@@ -1,6 +1,7 @@
 class OfficeHoursController < ApplicationController
-  before_action :set_office_hour, only: %i[ show edit update destroy ]
+  before_action :set_office_hour, only: %i[ show edit update destroy queue_status start_queue soft_close_queue hard_close_queue ]
   before_action :authorize_ta_access, only: [:edit, :update, :destroy]
+  before_action :authorize_ta_for_queue, only: [:start_queue, :soft_close_queue, :hard_close_queue]
 
   # GET /office_hours or /office_hours.json
   def index
@@ -149,8 +150,30 @@ class OfficeHoursController < ApplicationController
     end
   end
 
+  # Queue management actions
+  def start_queue
+    @office_hour.start_queue!
+    redirect_to @office_hour, notice: "Queue started successfully!"
+  end
+
+  def soft_close_queue
+    @office_hour.soft_close_queue!
+    
+    waiting_count = @office_hour.queue_entries.where(status: 'waiting').count
+    
+    redirect_to @office_hour, 
+      notice: "Queue closed to new students. #{waiting_count} student(s) still waiting to be served."
+  end
+
+  def hard_close_queue
+    removed_count = @office_hour.queue_entries.where(status: 'waiting').count
+    @office_hour.hard_close_queue!
+    
+    redirect_to @office_hour, 
+      notice: "Queue closed and #{removed_count} student(s) removed from queue."
+  end
+
   def queue_status
-    @office_hour = OfficeHour.find(params[:id])
     render partial: 'queue_section', locals: { office_hour: @office_hour }
   end
 
@@ -165,10 +188,17 @@ class OfficeHoursController < ApplicationController
       params.require(:office_hour).permit(:instructor, :day, :start_time, :end_time, :location, :ta_uni)
     end
 
+    # For editing/deleting office hours - check course match
     def authorize_ta_access
-      @office_hour = OfficeHour.find(params[:id])
-      unless @office_hour.ta_uni == current_user.uni
-        redirect_to office_hours_path, alert: "You can only modify your own office hours."
+      unless current_user&.ta? && @office_hour.course_name == current_user.course_name
+        redirect_to office_hours_path, alert: "You can only modify office hours for your course."
+      end
+    end
+    
+    # For queue management - just check if user is a TA (more permissive like old logic)
+    def authorize_ta_for_queue
+      unless current_user&.ta?
+        redirect_to @office_hour, alert: "Only TAs can manage the queue."
       end
     end
 end

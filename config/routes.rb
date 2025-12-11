@@ -24,11 +24,10 @@ Rails.application.routes.draw do
       end
     end
     
-    post 'start_queue', to: 'queue_entries#start_queue'
-    post 'close_queue', to: 'queue_entries#close_queue'
-    
-    # Polling endpoint for queue updates
     member do
+      post :start_queue
+      post :soft_close_queue
+      post :hard_close_queue
       get :queue_status
     end
   end
