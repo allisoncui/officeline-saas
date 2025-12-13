@@ -14,8 +14,8 @@ Feature: display list of office hours sorted by different criteria
       | Natural Language Processing | Daniel Bauer       | Wednesday | 2:00PM     | 4:00PM   | NOCO 501        |
       | Discrete Mathematics        | Ansaf Salleb       | Monday    | 4:00PM     | 6:00PM   | Pupin 428       |
       | Linear Algebra              | George Dragomir    | Friday    | 12:00PM    | 2:00PM   | Math 312        |
-    And I am on the home page
     And I sign in as "student123" with password "password123"
+    And I go to my hours page
     Then 10 seed office hours should exist
 
   Scenario: sort by course name

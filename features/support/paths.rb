@@ -20,6 +20,8 @@ module NavigationHelpers
     when /^the edit question page$/ then '/office_hours'  # Will be handled by specific step
     when /^the sign in page$/ then '/users/sign_in'
     when /^the sign up page$/ then '/users/sign_up'
+    when /^my hours page$/
+      student_my_hours_path
 
     # Add more mappings here.
     # Here is an example that pulls values out of the Regexp:

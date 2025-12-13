@@ -57,9 +57,9 @@ class StudentsController < ApplicationController
       @my_office_hours = base_scope.to_a.sort_by do |oh|
         [
           day_order.index(oh.day) || 99,
-          oh.start_time
+          Time.strptime(oh.start_time, "%I:%M%p")
         ]
-      end
+      end    
     else # "course_name"
       @my_office_hours = base_scope.order(course_name: :asc)
     end

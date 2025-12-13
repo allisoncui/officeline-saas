@@ -80,7 +80,7 @@ class OfficeHoursController < ApplicationController
     else    
       @saved_class_names = current_user.saved_classes if current_user&.student?
       @office_hours = OfficeHour.where(day: @days_to_show)
-    
+
       # Apply search filter if search parameter is present
       if params[:search].present?
         search_term = "%#{params[:search].strip}%"
@@ -89,8 +89,29 @@ class OfficeHoursController < ApplicationController
           search_term, search_term, search_term
         )
       end
-      @office_hours = @office_hours.order(:course_name, :day, :start_time)
-      @office_hours_by_course = @office_hours.group_by(&:course_name)
+
+      case @sort_by
+        when "instructor"
+          @office_hours = @office_hours.order(:instructor, :course_name, :day, :start_time)
+
+        when "day"
+          day_order = OfficeHour.all_days
+        
+          @office_hours = @office_hours.sort_by do |oh|
+            [
+              day_order.index(oh.day) || 99,
+              DateTime.strptime(oh.start_time, "%I:%M%p").strftime("%H:%M")
+            ]
+          end            
+
+        else 
+          @office_hours = @office_hours.order(:course_name, :day, :start_time)
+        end
+      if @sort_by == "day"
+        @office_hours_by_course = { "All Office Hours" => @office_hours }
+      else
+        @office_hours_by_course = @office_hours.group_by(&:course_name)
+      end
 
       render :student_index
     end    
