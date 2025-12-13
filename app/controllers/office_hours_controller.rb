@@ -145,7 +145,11 @@ class OfficeHoursController < ApplicationController
     @office_hour.destroy!
 
     respond_to do |format|
-      format.html { redirect_to office_hours_path, status: :see_other, notice: "Office hour was successfully destroyed." }
+      format.html do
+        redirect_to office_hours_path(view: 'all'),
+                    status: :see_other,
+                    notice: "Office hour was successfully destroyed."
+      end      
       format.json { head :no_content }
     end
   end

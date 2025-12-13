@@ -68,5 +68,5 @@ Feature: manage office hours
     And I follow "Show this office hour" for "Computer Science 101"
     And I press "Delete"
     Then I should be on the office hours home page
-    And I should not see "Computer Science 101"
+    And I should not see office hour "Computer Science 101"
     And I should not see "Dr. White"

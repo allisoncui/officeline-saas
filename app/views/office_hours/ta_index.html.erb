@@ -211,60 +211,62 @@
 
 <!-- My Hours / All Hours View -->
 <% else %>
-  <!-- Add Button -->
-  <div style="margin-bottom: 28px;">
-    <%= link_to "Add New Office Hour",
-        new_office_hour_path,
-        class: "ol-btn",
-        style: "
-          display: inline-block;
-          background: #16a34a;
-          color: white;
-          padding: 10px 18px;
-          border-radius: 8px;
-          text-decoration: none;
-          font-weight: 500;
-          transition: background 0.2s ease-in-out;
-          margin-top: 6px;
-        ",
-        onmouseover: "this.style.background='#15803d'",
-        onmouseout: "this.style.background='#16a34a'" %>
-  </div>
+  <div id="office_hours">
+    <!-- Add Button -->
+    <div style="margin-bottom: 28px;">
+      <%= link_to "Add New Office Hour",
+          new_office_hour_path,
+          class: "ol-btn",
+          style: "
+            display: inline-block;
+            background: #16a34a;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s ease-in-out;
+            margin-top: 6px;
+          ",
+          onmouseover: "this.style.background='#15803d'",
+          onmouseout: "this.style.background='#16a34a'" %>
+    </div>
 
-  <% if @office_hours.present? %>
-    <% @office_hours.each do |oh| %>
-      <% is_mine = (oh.ta_uni == current_user.uni) %>
-      
-      <div style="margin-bottom: 12px;">
-        <%= link_to office_hour_path(oh),
-            style: "text-decoration: none; color: inherit; display: block;" do %>
-          <div class="ol-card"
-               style="
-                 position: relative;
-                 margin-top: 12px;
-                 padding: 16px;
-                 border-radius: 10px;
-                 background: #f9fafb;
-                 cursor: pointer;
-                 transition: all 0.2s ease-in-out;
-                 border: 1px solid #e5e7eb;
-               "
-               onmouseover="this.style.background='#e0ecff'; this.style.transform='scale(1.01)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';"
-               onmouseout="this.style.background='#f9fafb'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
-            <p><strong>Day:</strong> <%= oh.day %></p>
-            <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
-            <p><strong>Location:</strong> <%= oh.location %></p>
+    <% if @office_hours.present? %>
+      <% @office_hours.each do |oh| %>
+        <% is_mine = (oh.ta_uni == current_user.uni) %>
+        
+        <div style="margin-bottom: 12px;">
+          <%= link_to office_hour_path(oh),
+              style: "text-decoration: none; color: inherit; display: block;" do %>
+            <div class="ol-card"
+                style="
+                  position: relative;
+                  margin-top: 12px;
+                  padding: 16px;
+                  border-radius: 10px;
+                  background: #f9fafb;
+                  cursor: pointer;
+                  transition: all 0.2s ease-in-out;
+                  border: 1px solid #e5e7eb;
+                "
+                onmouseover="this.style.background='#e0ecff'; this.style.transform='scale(1.01)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';"
+                onmouseout="this.style.background='#f9fafb'; this.style.transform='scale(1)'; this.style.boxShadow='none';">
+              <p><strong>Day:</strong> <%= oh.day %></p>
+              <p><strong>Time:</strong> <%= oh.start_time %> - <%= oh.end_time %></p>
+              <p><strong>Location:</strong> <%= oh.location %></p>
 
-            <% if is_mine %>
-              <span style="position: absolute; top: 10px; right: 14px; background: #2563eb; color: white; font-size: 12px; padding: 2px 8px; border-radius: 4px;">My Hour</span>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
+              <% if is_mine %>
+                <span style="position: absolute; top: 10px; right: 14px; background: #2563eb; color: white; font-size: 12px; padding: 2px 8px; border-radius: 4px;">My Hour</span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <p>You have no office hours scheduled yet.</p>
     <% end %>
-  <% else %>
-    <p>You have no office hours scheduled yet.</p>
-  <% end %>
+  </div>
 <% end %>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

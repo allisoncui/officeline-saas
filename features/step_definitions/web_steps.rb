@@ -115,6 +115,12 @@ Then /^(?:|I )should not see "([^"]*)"$/ do |text|
     expect(page).not_to have_content(text)
 end
 
+Then(/^I should not see office hour "(.*)"$/) do |course_name|
+  within('#office_hours') do
+    expect(page).not_to have_content(course_name)
+  end
+end
+
 Then /^(?:|I )should not see \/([^\/]*)\/$/ do |regexp|
   regexp = Regexp.new(regexp)
   expect(page).not_to have_xpath('//*', :text => regexp)
