@@ -13,7 +13,14 @@
           style: "width: 100%; max-width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 1rem; box-sizing: border-box;" %>
     </div>
 
-    <%= f.hidden_field :role, value: @role %>
+    <div style="position:absolute; left:-9999px;">
+      <%= f.radio_button :role, "student", id: "role_student", checked: (@role == 'student') %>
+      <%= label_tag "role_student", "Student" %>
+
+      <%= f.radio_button :role, "ta", id: "role_ta", checked: (@role == 'ta') %>
+      <%= label_tag "role_ta", "TA" %>
+    </div>
+
 
     <% if @role == 'ta' %>
       <div style="margin-bottom: 16px;">

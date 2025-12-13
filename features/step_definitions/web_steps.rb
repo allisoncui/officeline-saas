@@ -32,7 +32,7 @@ end
 
 When /^(?:|I )follow "([^"]*)"$/ do |link|
   if link == "Sign in" && current_path == new_user_session_path
-  elsif link == "Sign up" && current_path == new_user_registration_path
+  elsif link == "Sign Up" && current_path == new_user_registration_path
   elsif link == "New office hour"
     if page.has_link?("Add New Office Hour")
       click_link("Add New Office Hour")
@@ -41,8 +41,12 @@ When /^(?:|I )follow "([^"]*)"$/ do |link|
     else
       visit new_office_hour_path
     end
-  elsif link == "Sign up"
-    all("a", text: "Sign up").first.click
+  elsif link.casecmp("sign up").zero?
+    if page.has_link?("Sign up")
+      click_link("Sign up")
+    else
+      visit new_user_registration_path
+    end  
   else
     click_link(link)
   end

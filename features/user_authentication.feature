@@ -5,25 +5,25 @@ Feature: user authentication
 
   Scenario: sign up as a student
     Given I am on the office hours home page
-    When I follow "Sign up"
+    When I follow "Sign Up"
     And I fill in "UNI" with "student123"
     And I choose "Student"
     And I fill in "Password" with "password123"
     And I fill in "Password confirmation" with "password123"
-    And I press "Sign up"
+    And I press "Sign Up"
     Then I should be on the office hours home page
     And I should see "student123"
     And I should see "STUDENT"
 
   Scenario: sign up as a TA
     Given I am on the office hours home page
-    When I follow "Sign up"
+    When I follow the sign up link
+    And I follow "Sign up as TA instead"
     And I fill in "UNI" with "ta456"
-    And I choose "TA"
     And I fill in "Course Name" with "Engineering SaaS"
     And I fill in "Password" with "password123"
     And I fill in "Password confirmation" with "password123"
-    And I press "Sign up"
+    And I press "Sign Up"
     Then I should be on the office hours home page
     And I should see "ta456"
     And I should see "TA"
