@@ -69,10 +69,14 @@
   <div class="ol-row">
     <span class="ol-label">Include:</span>
     <% @all_days.each do |day| %>
-      <label class="ol-check">
-        <%= check_box_tag "days[#{day}]", "1", @days_to_show.include?(day), class: 'form-check-input' %>
-        <span><%= day %></span>
-      </label>
+      <% checkbox_id = "day_#{day}" %>
+        <label class="ol-check" for="<%= checkbox_id %>">
+          <%= check_box_tag "days[#{day}]", "1",
+                @days_to_show.include?(day),
+                id: checkbox_id,
+                class: "form-check-input" %>
+          <span><%= day %></span>
+        </label>
     <% end %>
   </div>
 

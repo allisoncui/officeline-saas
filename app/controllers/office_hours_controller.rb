@@ -77,10 +77,10 @@ class OfficeHoursController < ApplicationController
       end
     
       render :ta_index
-    else
-      # For student view, get office hours and apply search filter if present
-      @office_hours = OfficeHour.all
-      
+    else    
+      @saved_class_names = current_user.saved_classes if current_user&.student?
+      @office_hours = OfficeHour.where(day: @days_to_show)
+    
       # Apply search filter if search parameter is present
       if params[:search].present?
         search_term = "%#{params[:search].strip}%"
@@ -89,11 +89,11 @@ class OfficeHoursController < ApplicationController
           search_term, search_term, search_term
         )
       end
-      
+      @office_hours = @office_hours.order(:course_name, :day, :start_time)
       @office_hours_by_course = @office_hours.group_by(&:course_name)
-      @saved_class_names = current_user.saved_classes if current_user&.student?
+
       render :student_index
-    end
+    end    
 
   end
 
