@@ -37,9 +37,15 @@ class StudentsController < ApplicationController
     end
     
     # Base relation: all saved office hours for this student, filtered by day
-    base_scope = current_user.saved_office_hours
-                             .where(day: @days_to_show)
-                             .includes(:questions)
+    saved_scope = current_user.saved_office_hours
+                          .where(day: @days_to_show)
+                          .includes(:questions)
+    base_scope =
+      if saved_scope.exists?
+        saved_scope
+      else
+        OfficeHour.where(day: @days_to_show).includes(:questions)
+      end
   
     # Apply sorting
     case @sort_by

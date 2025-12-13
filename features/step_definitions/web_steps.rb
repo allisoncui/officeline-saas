@@ -207,3 +207,12 @@ end
 Then /^show me the page$/ do
   save_and_open_page
 end
+
+Given(/^I sign in as "([^"]*)" with password "([^"]*)"$/) do |uni, password|
+  visit root_path
+  click_link "Sign in"
+  fill_in "UNI", with: uni
+  click_button "Continue"
+  fill_in "Password", with: password
+  click_button "Sign In"
+end

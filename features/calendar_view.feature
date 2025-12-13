@@ -11,25 +11,22 @@ Feature: calendar view of office hours
       | Advanced Programming | Jae Woo Lee     | Monday    | 1:00PM     | 3:00PM   | Pupin 301    | ta002 |
       | Data Structures      | Paul Blaer      | Wednesday | 2:00PM     | 4:00PM   | Lehman 301   | ta003 |
     And I am on the home page
-    When I follow "Sign in"
-    And I fill in "UNI" with "student123"
-    And I press "Continue"
-    And I fill in "Password" with "password123"
-    And I press "Sign In"
+    And I sign in as "student123" with password "password123"
 
-  Scenario: toggle to calendar view
-    Then I should see office hours in list format
+  Scenario: switch to calendar view
     When I follow "My Hours"
-    Then I should see office hours in list format
-    When I check "calendar_toggle"
+    And I check "calendar_toggle"
+    And I press "Refresh"
     Then I should see the calendar view
     And I should see "Engineering SaaS"
     And I should see "Advanced Programming"
     And I should see "Data Structures"
 
-  Scenario: toggle back to list view
+  Scenario: switch back to list view
     When I follow "My Hours"
-    When I check "calendar_toggle"
+    And I check "calendar_toggle"
+    And I press "Refresh"
     Then I should see the calendar view
     When I uncheck "calendar_toggle"
+    And I press "Refresh"
     Then I should see office hours in list format
