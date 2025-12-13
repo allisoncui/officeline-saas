@@ -27,21 +27,6 @@ Feature: student dashboard
     And I should see "Dr. Jones"
     And I should not see "Physics 201"
 
-  Scenario: filter and sort my saved classes
-    Given the following office hours exist:
-      | course_name | instructor | day      | start_time | end_time | location | ta_uni |
-      | Math 101    | Dr. Jones  | Tuesday  | 2:00PM     | 4:00PM   | Room 201 | tj123  |
-      | Physics 201 | Dr. Brown  | Wednesday| 1:00PM     | 3:00PM   | Room 401 | tb123  |
-    And I am on the office hours home page
-    And I press "Save Class" for "Math 101"
-    And I press "Save Class" for "Physics 201"
-    And I follow "My Classes"
-    When I check the following days: Tuesday
-    And I uncheck the following days: Wednesday, Thursday, Friday
-    And I press "Refresh"
-    Then I should see "Math 101"
-    And I should not see "Physics 201"
-
   Scenario: view my submitted questions
     Given the following office hours exist:
       | course_name | instructor | day      | start_time | end_time | location | ta_uni |

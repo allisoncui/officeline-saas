@@ -13,8 +13,15 @@ class Question < ApplicationRecord
   
   validates :question_text, presence: true
   validates :question_type, presence: true, inclusion: { in: QUESTION_TYPES.map { |_, value| value } }
-  
+  before_validation :set_default_question_type
+
   def question_type_display
     QUESTION_TYPES.find { |_, value| value == question_type }&.first || question_type&.humanize
+  end
+  
+  private
+
+  def set_default_question_type
+    self.question_type = 'general' if question_type.blank?
   end
 end
