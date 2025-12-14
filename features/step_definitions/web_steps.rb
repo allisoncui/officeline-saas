@@ -26,12 +26,24 @@ When /^(?:|I )go to (.+)$/ do |page_name|
   visit path_to(page_name)
 end
 
-When /^(?:|I )press "([^"]*)"$/ do |button|
-  click_button(button)
+When /^(?:|I )press "([^"]*)"$/ do |label|
+  if label == "Hard Close Queue"
+    within('.ol-card', text: 'Office Hour Queue') do
+      click_button(label)
+    end
+  elsif page.has_button?(label)
+    click_button(label)
+  elsif page.has_link?(label)
+    click_link(label)
+  else
+    raise "No button or link found with label '#{label}'"
+  end
 end
 
 When /^(?:|I )follow "([^"]*)"$/ do |link|
   if link == "Sign in" && current_path == new_user_session_path
+  elsif link == "Log out"
+    page.driver.submit :delete, destroy_user_session_path, {}
   elsif link == "Sign Up" && current_path == new_user_registration_path
   elsif link == "New office hour"
     if page.has_link?("Add New Office Hour")
@@ -50,6 +62,10 @@ When /^(?:|I )follow "([^"]*)"$/ do |link|
   else
     click_link(link)
   end
+end
+
+When(/^I follow the sign up link$/) do
+  visit new_user_registration_path
 end
 
 When /^(?:|I )fill in "([^"]*)" with "([^"]*)"$/ do |field, value|
@@ -225,4 +241,9 @@ Given(/^I sign in as "([^"]*)" with password "([^"]*)"$/) do |uni, password|
   click_button "Continue"
   fill_in "Password", with: password
   click_button "Sign In"
+end
+
+When(/^I view the office hour for "([^"]*)"$/) do |course_name|
+  office_hour = OfficeHour.find_by!(course_name: course_name)
+  visit office_hour_path(office_hour)
 end

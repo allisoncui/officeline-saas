@@ -8,7 +8,7 @@ Feature: manage questions
       | Math 101    | Dr. Jones  | Tuesday | 2:00PM     | 4:00PM   | Room 201 | tj123 |
     And I am on the home page
     And I sign in as "student123" with password "password123"
-    And I click "Show this office hour" for "Math 101"
+    And I view the office hour for "Math 101"
     And I fill in "question_question_text" with "Original question"
     And I press "Submit Question"
 
@@ -30,7 +30,7 @@ Feature: manage questions
   Scenario: another student cannot edit my question
     When I follow "Log out"
     And I sign in as "student456" with password "password123"
-    And I click "Show this office hour" for "Math 101"
+    And I view the office hour for "Math 101"
     Then I should see "Original question"
     And I should not see "Edit"
     And I should not see "Delete"

@@ -11,7 +11,7 @@ Feature: submit questions for office hours
     Then 2 seed office hours should exist
 
   Scenario: submit a question
-    When I click "Show this office hour" for "Engineering SaaS"
+    When I follow "Show this office hour" for "Engineering SaaS"
     Then I should be viewing the office hour details for course "Engineering SaaS"
     And I should see "Submit a Question"
     And I should see "Previous Questions"
@@ -41,6 +41,6 @@ Feature: submit questions for office hours
     When I fill in "question_question_text" with "Question A"
     And I press "Submit Question"
     When I click "Back to Office Hours"
-    And I click "Show this office hour" for "Data Structures"
+    And I follow "Show this office hour" for "Data Structures"
     Then I should not see "Question A"
     And I should see "No questions submitted yet"
