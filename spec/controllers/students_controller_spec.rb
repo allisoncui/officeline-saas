@@ -106,6 +106,67 @@ RSpec.describe StudentsController, type: :controller do
       get :my_hours
       expect(assigns(:my_office_hours)).to be_empty
     end
+
+    it 'shows all office hours for selected days when student has no saved hours' do
+      monday_oh = create(:office_hour, day: 'Monday')
+      tuesday_oh = create(:office_hour, day: 'Tuesday')
+      
+      get :my_hours, params: { days: { 'Monday' => '1' } }
+      expect(assigns(:my_office_hours)).to include(monday_oh)
+      expect(assigns(:my_office_hours)).not_to include(tuesday_oh)
+    end
+
+    it 'sorts by instructor when sort_by is instructor' do
+      oh1 = create(:office_hour, instructor: 'Zebra', course_name: 'Math')
+      oh2 = create(:office_hour, instructor: 'Alpha', course_name: 'Math')
+      create(:enrollment, user: student, office_hour: oh1)
+      create(:enrollment, user: student, office_hour: oh2)
+      
+      get :my_hours, params: { sort_by: 'instructor' }
+      expect(assigns(:my_office_hours).first).to eq(oh2)
+      expect(assigns(:my_office_hours).last).to eq(oh1)
+    end
+
+    it 'sorts by day when sort_by is day' do
+      oh1 = create(:office_hour, day: 'Wednesday', start_time: '2:00PM')
+      oh2 = create(:office_hour, day: 'Monday', start_time: '1:00PM')
+      oh3 = create(:office_hour, day: 'Monday', start_time: '10:00AM')
+      create(:enrollment, user: student, office_hour: oh1)
+      create(:enrollment, user: student, office_hour: oh2)
+      create(:enrollment, user: student, office_hour: oh3)
+      
+      get :my_hours, params: { sort_by: 'day' }
+      sorted = assigns(:my_office_hours)
+      expect(sorted.first).to eq(oh3)
+      expect(sorted[1]).to eq(oh2)
+      expect(sorted.last).to eq(oh1)
+    end
+
+    it 'uses session days when no params provided' do
+      session[:my_hours_days] = ['Monday']
+      monday_oh = create(:office_hour, day: 'Monday')
+      tuesday_oh = create(:office_hour, day: 'Tuesday')
+      create(:enrollment, user: student, office_hour: monday_oh)
+      create(:enrollment, user: student, office_hour: tuesday_oh)
+      
+      get :my_hours
+      expect(assigns(:my_office_hours)).to include(monday_oh)
+      expect(assigns(:my_office_hours)).not_to include(tuesday_oh)
+    end
+
+    it 'uses session sort_by when no params provided' do
+      session[:my_hours_sort_by] = 'instructor'
+      get :my_hours
+      expect(assigns(:sort_by)).to eq('instructor')
+    end
+
+    it 'handles case when saved_scope does not exist' do
+      # No enrollments, so saved_scope.exists? will be false
+      monday_oh = create(:office_hour, day: 'Monday')
+      
+      get :my_hours
+      expect(assigns(:my_office_hours)).to include(monday_oh)
+    end
   end
 
   describe 'POST #save_class' do
@@ -202,6 +263,62 @@ RSpec.describe StudentsController, type: :controller do
       get :questions
       expect(assigns(:my_questions)).to be_empty
     end
+
+    it 'filters questions by question type when provided' do
+      office_hour = create(:office_hour)
+      homework_question = create(:question, user: student, office_hour: office_hour, question_type: 'homework')
+      exam_question = create(:question, user: student, office_hour: office_hour, question_type: 'exam')
+      
+      get :questions, params: { question_type: 'homework' }
+      questions = assigns(:my_questions)[office_hour]
+      expect(questions).to include(homework_question)
+      expect(questions).not_to include(exam_question)
+    end
+
+    it 'shows all questions when "all" is selected' do
+      office_hour = create(:office_hour)
+      homework_question = create(:question, user: student, office_hour: office_hour, question_type: 'homework')
+      exam_question = create(:question, user: student, office_hour: office_hour, question_type: 'exam')
+      
+      get :questions, params: { question_type: 'all' }
+      questions = assigns(:my_questions)[office_hour]
+      expect(questions).to include(homework_question, exam_question)
+      expect(assigns(:selected_question_type)).to eq('all')
+    end
+
+    it 'defaults to "all" when no filter is provided' do
+      office_hour = create(:office_hour)
+      create(:question, user: student, office_hour: office_hour, question_type: 'homework')
+      create(:question, user: student, office_hour: office_hour, question_type: 'exam')
+      
+      get :questions
+      expect(assigns(:selected_question_type)).to eq('all')
+      expect(assigns(:my_questions)[office_hour].count).to eq(2)
+    end
+
+    it 'stores filter preference in session' do
+      get :questions, params: { question_type: 'homework' }
+      expect(session[:my_questions_type]).to eq('homework')
+    end
+
+    it 'clears session when "all" is selected' do
+      session[:my_questions_type] = 'homework'
+      get :questions, params: { question_type: 'all' }
+      expect(session[:my_questions_type]).to be_nil
+    end
+
+    it 'uses session value when no params provided' do
+      session[:my_questions_type] = 'exam'
+      office_hour = create(:office_hour)
+      homework_question = create(:question, user: student, office_hour: office_hour, question_type: 'homework')
+      exam_question = create(:question, user: student, office_hour: office_hour, question_type: 'exam')
+      
+      get :questions
+      questions = assigns(:my_questions)[office_hour]
+      expect(questions).to include(exam_question)
+      expect(questions).not_to include(homework_question)
+      expect(assigns(:selected_question_type)).to eq('exam')
+    end
   end
 
   describe 'authorization' do
@@ -238,6 +355,54 @@ RSpec.describe StudentsController, type: :controller do
       get :questions
       expect(response).to redirect_to(office_hours_path)
       expect(flash[:alert]).to match(/students only/i)
+    end
+  end
+
+  describe 'POST #save_class' do
+    before { sign_in student }
+
+    it 'saves a class to the student profile' do
+      post :save_class, params: { course_name: 'Engineering SaaS' }
+      student.reload
+      expect(student.saved_classes).to include('Engineering SaaS')
+    end
+
+    it 'redirects with success notice' do
+      post :save_class, params: { course_name: 'Engineering SaaS' }
+      expect(response).to redirect_to(office_hours_path)
+      expect(flash[:notice]).to match(/saved to My Classes/i)
+    end
+
+    it 'handles missing course_name' do
+      post :save_class, params: { course_name: '' }
+      expect(response).to redirect_to(office_hours_path)
+      expect(flash[:alert]).to match(/Could not save/i)
+    end
+  end
+
+  describe 'DELETE #remove_class' do
+    before do
+      sign_in student
+      student.update(saved_classes: ['Engineering SaaS', 'Math 101'])
+    end
+
+    it 'removes a class from the student profile' do
+      delete :remove_class, params: { course_name: 'Engineering SaaS' }
+      student.reload
+      expect(student.saved_classes).not_to include('Engineering SaaS')
+      expect(student.saved_classes).to include('Math 101')
+    end
+
+    it 'redirects with success notice' do
+      delete :remove_class, params: { course_name: 'Engineering SaaS' }
+      expect(response).to redirect_to(student_profile_path)
+      expect(flash[:notice]).to match(/removed from My Classes/i)
+    end
+
+    it 'handles missing course_name' do
+      delete :remove_class, params: { course_name: '' }
+      expect(response).to redirect_to(student_profile_path)
+      expect(flash[:alert]).to match(/Could not remove/i)
     end
   end
 end

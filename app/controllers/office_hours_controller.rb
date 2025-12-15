@@ -30,19 +30,14 @@ class OfficeHoursController < ApplicationController
 
     # role based logic
     if current_user&.ta?
-      # fetch all office hours under the TA's course
-      @all_office_hours = OfficeHour.where(course_name: current_user.course_name)
-      
-      # fetch only this TA's own hours
-      @my_office_hours = @all_office_hours.where(ta_uni: current_user.uni)
+      # fetch only this TA's own hours (course is implied by TA's course_name)
+      @my_office_hours = OfficeHour.where(course_name: current_user.course_name, ta_uni: current_user.uni)
     
-      # Handle view parameter: 'dashboard', 'my', or 'all'
-      @view = params[:view].presence_in(%w[dashboard my all]) || 'dashboard'
+      # Handle view parameter: 'dashboard' or 'my'
+      @view = params[:view].presence_in(%w[dashboard my]) || 'dashboard'
       
       if @view == 'my'
         @office_hours = @my_office_hours
-      elsif @view == 'all'
-        @office_hours = @all_office_hours
       else
         # Dashboard view - collect analytics from queue sessions
         @office_hours = nil
@@ -167,7 +162,7 @@ class OfficeHoursController < ApplicationController
 
     respond_to do |format|
       format.html do
-        redirect_to office_hours_path(view: 'all'),
+        redirect_to office_hours_path(view: 'my'),
                     status: :see_other,
                     notice: "Office hour was successfully destroyed."
       end      

@@ -67,57 +67,236 @@
 
 <h1 class="ol-title">My Submitted Questions</h1>
 
+<!-- Filter Form -->
+<%= form_tag student_questions_path, method: :get, local: true, style: "margin-bottom: 24px; margin-top: 8px;" do %>
+  <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+    <strong style="color: #0f172a;">Filter by question type:</strong>
+    <% 
+      # Color mapping for question types
+      badge_colors = {
+        'homework' => { bg: '#dbeafe', text: '#1d4ed8' },
+        'concept' => { bg: '#e9d5ff', text: '#7c3aed' },
+        'project' => { bg: '#d1fae5', text: '#059669' },
+        'exam' => { bg: '#fed7aa', text: '#c2410c' },
+        'general' => { bg: '#e5e7eb', text: '#374151' }
+      }
+      
+      # Build options with "All" option
+      options = [['All Question Types', 'all']] + Question::QUESTION_TYPES
+      selected_value = @selected_question_type || 'all'
+    %>
+    <%= select_tag :question_type,
+        options_for_select(options, selected_value),
+        { 
+          class: "ol-select question-type-filter",
+          style: "padding: 6px 10px; border-radius: 6px; border: 1px solid #e5e7eb; font-size: 0.9rem; width: auto; min-width: 180px;",
+          onchange: "this.form.submit();",
+          data: { selected: (selected_value != 'all' ? selected_value : nil) }
+        } %>
+  </div>
+<% end %>
+
+<style>
+  /* Style the selected option based on question type */
+  .question-type-filter {
+    background-color: white;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  
+  .question-type-filter option[value="homework"] {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+  }
+  
+  .question-type-filter option[value="concept"] {
+    background-color: #e9d5ff;
+    color: #7c3aed;
+  }
+  
+  .question-type-filter option[value="project"] {
+    background-color: #d1fae5;
+    color: #059669;
+  }
+  
+  .question-type-filter option[value="exam"] {
+    background-color: #fed7aa;
+    color: #c2410c;
+  }
+  
+  .question-type-filter option[value="general"] {
+    background-color: #e5e7eb;
+    color: #374151;
+  }
+  
+  .question-type-filter option[value="all"] {
+    background-color: white;
+    color: #0f172a;
+  }
+  
+  /* Dynamic styling based on selected value */
+  .question-type-filter[data-selected="homework"] {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+  
+  .question-type-filter[data-selected="concept"] {
+    background-color: #e9d5ff;
+    color: #7c3aed;
+    border-color: #7c3aed;
+  }
+  
+  .question-type-filter[data-selected="project"] {
+    background-color: #d1fae5;
+    color: #059669;
+    border-color: #059669;
+  }
+  
+  .question-type-filter[data-selected="exam"] {
+    background-color: #fed7aa;
+    color: #c2410c;
+    border-color: #c2410c;
+  }
+  
+  .question-type-filter[data-selected="general"] {
+    background-color: #e5e7eb;
+    color: #374151;
+    border-color: #374151;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const filter = document.querySelector('.question-type-filter');
+    if (filter) {
+      // Initialize color based on current selection
+      const selectedValue = filter.value || filter.getAttribute('data-selected');
+      if (selectedValue && selectedValue !== 'all') {
+        filter.setAttribute('data-selected', selectedValue);
+      }
+      
+      // Update color on change
+      filter.addEventListener('change', function() {
+        const value = this.value;
+        if (value && value !== 'all') {
+          this.setAttribute('data-selected', value);
+        } else {
+          this.removeAttribute('data-selected');
+        }
+      });
+    }
+  });
+</script>
+
 <% if @my_questions.any? %>
-  <p id="results-summary" class="ol-muted" style="margin-bottom: 16px;">
-    <%= pluralize(current_user.questions.count, "question") %> across <%= pluralize(@my_questions.keys.count, "class") %>
+  <p id="results-summary" class="ol-muted" style="margin-bottom: 20px;">
+    <%= pluralize(@my_questions.values.flatten.count, "question") %> across <%= pluralize(@my_questions.keys.count, "class") %>
   </p>
   
-  <% @my_questions.each do |office_hour, questions| %>
-    <div class="ol-card" style="margin-bottom: 24px;">
-      <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;">
-        <h3 style="margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 700;">
-          <%= link_to office_hour.course_name, office_hour_path(office_hour), style: "color: #2563eb; text-decoration: none;" %>
-        </h3>
-        <p style="margin: 0; color: #64748b; font-size: 0.9rem;">
-          <%= office_hour.instructor %> • <%= office_hour.day %> <%= office_hour.start_time %> - <%= office_hour.end_time %>
-        </p>
-      </div>
-      
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <% questions.each do |question| %>
-          <div class="question-item" style="position: relative;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-              <div style="flex: 1;">
-                <div style="margin-bottom: 6px;">
-                  <span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+  <!-- Grid Container -->
+  <div class="questions-grid" style="
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 24px;
+    margin-bottom: 20px;
+  ">
+    <% @my_questions.each do |office_hour, questions| %>
+      <div style="
+        padding: 20px; 
+        border: 2px solid #e2e8f0; 
+        border-radius: 10px; 
+        background: #ffffff;
+        border-left: 4px solid #2563eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      ">
+        <!-- Class Header -->
+        <div style="margin-bottom: 16px; padding-bottom: 14px; border-bottom: 2px solid #e2e8f0;">
+          <h3 style="
+            margin: 0 0 8px 0; 
+            font-size: 1.2rem; 
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+          ">
+            <%= link_to office_hour.course_name, office_hour_path(office_hour), 
+                style: "color: #0f172a; text-decoration: none; transition: color 0.2s;",
+                onmouseover: "this.style.color='#2563eb'",
+                onmouseout: "this.style.color='#0f172a'" %>
+          </h3>
+          <p style="margin: 0; color: #64748b; font-size: 0.9rem; font-weight: 500;">
+            <%= office_hour.instructor %> • <%= office_hour.day %> <%= office_hour.start_time %> - <%= office_hour.end_time %>
+          </p>
+        </div>
+        
+        <!-- Questions List -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <% questions.each do |question| %>
+            <div class="question-item" style="
+              background: #f8fafc; 
+              padding: 14px; 
+              border-radius: 8px; 
+              border: 1px solid #e2e8f0;
+            ">
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div>
+                  <% 
+                    # Assign colors based on question type
+                    badge_colors = {
+                      'homework' => { bg: '#dbeafe', text: '#1d4ed8' },      # Blue
+                      'concept' => { bg: '#e9d5ff', text: '#7c3aed' },       # Purple
+                      'project' => { bg: '#d1fae5', text: '#059669' },      # Green
+                      'exam' => { bg: '#fed7aa', text: '#c2410c' },          # Orange
+                      'general' => { bg: '#e5e7eb', text: '#374151' }         # Gray
+                    }
+                    colors = badge_colors[question.question_type] || badge_colors['general']
+                  %>
+                  <span style="background: <%= colors[:bg] %>; color: <%= colors[:text] %>; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; display: inline-block;">
                     <%= question.question_type_display %>
                   </span>
                 </div>
-                <p style="margin: 0 0 8px 0; color: #0f172a;"><%= question.question_text %></p>
-                <p style="margin: 0; color: #94a3b8; font-size: 0.85rem;">
-                  Submitted <%= time_ago_in_words(question.created_at) %> ago
+                <p style="margin: 0; color: #0f172a; font-size: 0.95rem; line-height: 1.5; font-weight: 500;">
+                  <%= question.question_text %>
                 </p>
-              </div>
-              <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                <%= link_to 'Edit', edit_office_hour_question_path(office_hour, question),
-                            class: 'ol-btn ol-btn-outline',
-                            style: 'padding: 4px 10px; font-size: 0.85rem;' %>
-                <%= button_to 'Delete', office_hour_question_path(office_hour, question),
-                             method: :delete,
-                             class: 'ol-btn ol-btn-danger',
-                             style: 'padding: 4px 10px; font-size: 0.85rem;',
-                             data: { confirm: 'Are you sure you want to delete this question?', turbo: false } %>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                  <p style="margin: 0; color: #94a3b8; font-size: 0.85rem;">
+                    Submitted <%= time_ago_in_words(question.created_at) %> ago
+                  </p>
+                  <div style="display: flex; gap: 8px;">
+                    <%= link_to 'Edit', edit_office_hour_question_path(office_hour, question),
+                                class: 'ol-btn ol-btn-outline',
+                                style: 'padding: 5px 12px; font-size: 0.85rem;' %>
+                    <%= button_to 'Delete', office_hour_question_path(office_hour, question),
+                                 method: :delete,
+                                 class: 'ol-btn ol-btn-danger',
+                                 style: 'padding: 5px 12px; font-size: 0.85rem;',
+                                 data: { confirm: 'Are you sure you want to delete this question?', turbo: false } %>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
       </div>
-    </div>
-  <% end %>
+    <% end %>
+  </div>
 <% else %>
-  <div class="ol-card">
-    <p style="margin: 0; color: #64748b;">
-      You haven't submitted any questions yet. Visit an office hour page to ask a question!
-    </p>
+  <div class="ol-card" style="padding: 24px; text-align: center;">
+    <% if current_user.questions.any? %>
+      <p style="margin: 0; color: #64748b;">
+        No questions match your current filters. Try adjusting your question type selections above.
+      </p>
+    <% else %>
+      <p style="margin: 0; color: #64748b;">
+        You haven't submitted any questions yet. Visit an office hour page to ask a question!
+      </p>
+    <% end %>
   </div>
 <% end %>
+
+<style>
+  @media (max-width: 768px) {
+    .questions-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>

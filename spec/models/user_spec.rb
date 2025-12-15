@@ -196,6 +196,28 @@ RSpec.describe User, type: :model do
       end
     end
     
+    describe '.available_roles_for_uni' do
+      it 'returns available roles when UNI has no accounts' do
+        expect(User.available_roles_for_uni('new123')).to match_array(%w[student ta])
+      end
+      
+      it 'returns only student when UNI has TA account' do
+        create(:user, uni: 'abc123', role: 'ta', course_name: 'CS 101')
+        expect(User.available_roles_for_uni('abc123')).to eq(['student'])
+      end
+      
+      it 'returns only ta when UNI has student account' do
+        create(:user, uni: 'abc123', role: 'student')
+        expect(User.available_roles_for_uni('abc123')).to eq(['ta'])
+      end
+      
+      it 'returns empty array when UNI has both accounts' do
+        create(:user, uni: 'abc123', role: 'student')
+        create(:user, uni: 'abc123', role: 'ta', course_name: 'CS 101')
+        expect(User.available_roles_for_uni('abc123')).to be_empty
+      end
+    end
+    
     describe '.has_both_accounts?' do
       it 'returns true when UNI has both student and TA accounts' do
         create(:user, uni: 'abc123', role: 'student')

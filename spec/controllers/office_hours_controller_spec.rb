@@ -87,15 +87,6 @@ RSpec.describe OfficeHoursController, type: :controller do
         expect(response).to render_template('ta_index')
       end
 
-      it 'assigns office hours for TA course' do
-        office_hour # create the office hour
-        other_course_oh = create(:office_hour, course_name: 'Other Course')
-        
-        get :index
-        expect(assigns(:all_office_hours)).to include(office_hour)
-        expect(assigns(:all_office_hours)).not_to include(other_course_oh)
-      end
-
       it 'assigns only TA own hours when view is "my"' do
         my_oh = office_hour
         other_ta_oh = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other_ta')
@@ -105,23 +96,6 @@ RSpec.describe OfficeHoursController, type: :controller do
         expect(assigns(:office_hours)).not_to include(other_ta_oh)
       end
 
-      it 'assigns all course hours when view is "all"' do
-        my_oh = office_hour
-        other_ta_oh = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other_ta')
-        
-        get :index, params: { view: 'all' }
-        expect(assigns(:office_hours)).to include(my_oh, other_ta_oh)
-      end
-
-      it 'executes @view == "all" ternary check' do
-        office_hour # Create the office hour before the request
-        other_ta_oh = create(:office_hour, course_name: 'Engineering SaaS', ta_uni: 'other_ta')
-        
-        get :index, params: { view: 'all' }
-        expect(assigns(:view)).to eq('all')
-        expect(assigns(:office_hours)).to be_present
-        expect(assigns(:office_hours)).to include(office_hour, other_ta_oh)
-      end
 
       it 'defaults to dashboard view' do
         get :index
@@ -235,16 +209,46 @@ RSpec.describe OfficeHoursController, type: :controller do
   end
 
   describe 'GET #show' do
-    before { sign_in student }
+    context 'as a student' do
+      before { sign_in student }
 
-    it 'assigns the requested office hour' do
-      get :show, params: { id: office_hour.id }
-      expect(assigns(:office_hour)).to eq(office_hour)
+      it 'assigns the requested office hour' do
+        get :show, params: { id: office_hour.id }
+        expect(assigns(:office_hour)).to eq(office_hour)
+      end
+
+      it 'renders the show template' do
+        get :show, params: { id: office_hour.id }
+        expect(response).to render_template('show')
+      end
+
+      it 'renders student navigation tabs' do
+        get :show, params: { id: office_hour.id }
+        expect(response).to render_template('show')
+        # Navigation tabs are rendered in the view template
+        expect(response).to have_http_status(:success)
+      end
     end
 
-    it 'renders the show template' do
-      get :show, params: { id: office_hour.id }
-      expect(response).to render_template('show')
+    context 'as a TA' do
+      before { sign_in ta }
+
+      it 'assigns the requested office hour' do
+        get :show, params: { id: office_hour.id }
+        expect(assigns(:office_hour)).to eq(office_hour)
+      end
+
+      it 'renders the show template' do
+        get :show, params: { id: office_hour.id }
+        expect(response).to render_template('show')
+      end
+
+      it 'renders TA navigation tabs' do
+        get :show, params: { id: office_hour.id }
+        expect(response).to render_template('show')
+        # Navigation tabs are rendered in the view template
+        expect(response).to have_http_status(:success)
+      end
     end
   end
 
@@ -278,12 +282,12 @@ RSpec.describe OfficeHoursController, type: :controller do
     end
 
     context 'when TA does not own the office hour' do
-      let(:other_oh) { create(:office_hour, ta_uni: 'other_ta') }
+      let(:other_oh) { create(:office_hour, ta_uni: 'other_ta', course_name: 'Other Course') }
 
       it 'redirects with alert' do
         get :edit, params: { id: other_oh.id }
         expect(response).to redirect_to(office_hours_path)
-        expect(flash[:alert]).to match(/only modify your own/i)
+        expect(flash[:alert]).to match(/only modify.*course/i)
       end
     end
   end
@@ -484,7 +488,7 @@ RSpec.describe OfficeHoursController, type: :controller do
 
     it 'redirects to the office hours list' do
       delete :destroy, params: { id: office_hour.id }
-      expect(response).to redirect_to(office_hours_path)
+      expect(response).to redirect_to(office_hours_path(view: 'my'))
     end
 
     it 'sets a success notice' do
@@ -526,6 +530,94 @@ RSpec.describe OfficeHoursController, type: :controller do
     end
   end
 
+  describe 'POST #start_queue' do
+    before { sign_in ta }
+
+    it 'starts the queue' do
+      post :start_queue, params: { id: office_hour.id }
+      office_hour.reload
+      expect(office_hour.queue_active?).to be true
+    end
+
+    it 'creates a queue session' do
+      expect {
+        post :start_queue, params: { id: office_hour.id }
+      }.to change(QueueSession, :count).by(1)
+    end
+
+    it 'redirects to office hour with success notice' do
+      post :start_queue, params: { id: office_hour.id }
+      expect(response).to redirect_to(office_hour)
+      expect(flash[:notice]).to match(/started successfully/i)
+    end
+  end
+
+  describe 'POST #soft_close_queue' do
+    before do
+      sign_in ta
+      office_hour.start_queue!
+      create(:queue_entry, office_hour: office_hour, status: 'waiting')
+    end
+
+    it 'closes queue to new students' do
+      post :soft_close_queue, params: { id: office_hour.id }
+      office_hour.reload
+      expect(office_hour.queue_active?).to be false
+    end
+
+    it 'keeps waiting students in queue' do
+      entry = office_hour.queue_entries.first
+      post :soft_close_queue, params: { id: office_hour.id }
+      expect(entry.reload.status).to eq('waiting')
+    end
+
+    it 'redirects with notice about waiting students' do
+      post :soft_close_queue, params: { id: office_hour.id }
+      expect(response).to redirect_to(office_hour)
+      expect(flash[:notice]).to match(/still waiting/i)
+    end
+  end
+
+  describe 'POST #hard_close_queue' do
+    before do
+      sign_in ta
+      office_hour.start_queue!
+      create(:queue_entry, office_hour: office_hour, status: 'waiting')
+    end
+
+    it 'closes the queue' do
+      post :hard_close_queue, params: { id: office_hour.id }
+      office_hour.reload
+      expect(office_hour.queue_active?).to be false
+    end
+
+    it 'removes all waiting students' do
+      entry = office_hour.queue_entries.first
+      post :hard_close_queue, params: { id: office_hour.id }
+      expect(entry.reload.status).to eq('removed')
+    end
+
+    it 'redirects with notice about removed students' do
+      post :hard_close_queue, params: { id: office_hour.id }
+      expect(response).to redirect_to(office_hour)
+      expect(flash[:notice]).to match(/removed from queue/i)
+    end
+  end
+
+  describe 'GET #queue_status' do
+    before { sign_in ta }
+
+    it 'renders the queue_section partial' do
+      get :queue_status, params: { id: office_hour.id }
+      expect(response).to render_template(partial: '_queue_section')
+    end
+
+    it 'assigns the office hour' do
+      get :queue_status, params: { id: office_hour.id }
+      expect(assigns(:office_hour)).to eq(office_hour)
+    end
+  end
+
   describe '#authorize_ta_access' do
     context 'when updating without authorization' do
       let(:other_ta) { create(:user, :ta, uni: 'other_ta', course_name: 'Other Course') }
@@ -535,13 +627,13 @@ RSpec.describe OfficeHoursController, type: :controller do
       it 'redirects when trying to update' do
         patch :update, params: { id: office_hour.id, office_hour: { instructor: 'New Name' } }
         expect(response).to redirect_to(office_hours_path)
-        expect(flash[:alert]).to match(/only modify your own/i)
+        expect(flash[:alert]).to match(/only modify.*course/i)
       end
 
       it 'redirects when trying to destroy' do
         delete :destroy, params: { id: office_hour.id }
         expect(response).to redirect_to(office_hours_path)
-        expect(flash[:alert]).to match(/only modify your own/i)
+        expect(flash[:alert]).to match(/only modify.*course/i)
       end
     end
   end

@@ -88,10 +88,34 @@ class StudentsController < ApplicationController
   end
 
   def questions
-    # Get all questions submitted by this student, grouped by office hour
-    @my_questions = current_user.questions.includes(:office_hour)
-                                 .order(created_at: :desc)
-                                 .group_by(&:office_hour)
+    @all_question_types = Question::QUESTION_TYPES.map { |_, value| value }
+    
+    # Handle question type filtering (single selection from dropdown)
+    selected_type = params[:question_type].presence
+    
+    if selected_type.present?
+      if selected_type == 'all'
+        @selected_question_type = 'all'
+        session[:my_questions_type] = nil 
+      else
+        @selected_question_type = selected_type
+        session[:my_questions_type] = @selected_question_type
+      end
+    else
+      # Use session value if available, otherwise default to 'all'
+      @selected_question_type = session[:my_questions_type] || 'all'
+    end
+    
+    questions = current_user.questions.includes(:office_hour)
+    
+    if @selected_question_type != 'all'
+      questions = questions.where(question_type: @selected_question_type)
+    end
+    
+    questions = questions.order(created_at: :desc)
+    
+    # Group by office hour
+    @my_questions = questions.group_by(&:office_hour)
   end
 
   private

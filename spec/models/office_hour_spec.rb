@@ -22,6 +22,79 @@ RSpec.describe OfficeHour, type: :model do
         office_hour.start_queue!
         expect(office_hour.queue_started_at).to be_present
       end
+
+      it 'associates existing questions without session to the new session' do
+        user = create(:user, :student)
+        question1 = create(:question, office_hour: office_hour, user: user, queue_session_id: nil)
+        question2 = create(:question, office_hour: office_hour, user: user, queue_session_id: nil)
+        
+        office_hour.start_queue!
+        session = office_hour.current_session
+        
+        question1.reload
+        question2.reload
+        expect(question1.queue_session_id).to eq(session.id)
+        expect(question2.queue_session_id).to eq(session.id)
+      end
+    end
+
+    describe '#soft_close_queue!' do
+      before do
+        office_hour.start_queue!
+      end
+
+      it 'sets queue_active to false' do
+        office_hour.soft_close_queue!
+        expect(office_hour.queue_active?).to be false
+      end
+
+      it 'clears queue_started_at' do
+        office_hour.soft_close_queue!
+        expect(office_hour.queue_started_at).to be_nil
+      end
+
+      it 'does not end the current session' do
+        session = office_hour.current_session
+        office_hour.soft_close_queue!
+        expect(session.reload.ended_at).to be_nil
+      end
+    end
+
+    describe '#hard_close_queue!' do
+      before do
+        office_hour.start_queue!
+        create(:queue_entry, office_hour: office_hour, status: 'waiting')
+      end
+
+      it 'sets queue_active to false' do
+        office_hour.hard_close_queue!
+        expect(office_hour.queue_active?).to be false
+      end
+
+      it 'ends the current session' do
+        session = office_hour.current_session
+        office_hour.hard_close_queue!
+        expect(session.reload.ended_at).to be_present
+      end
+
+      it 'marks waiting entries as removed' do
+        entry = office_hour.queue_entries.first
+        office_hour.hard_close_queue!
+        expect(entry.reload.status).to eq('removed')
+      end
+
+      it 'clears queue_started_at' do
+        office_hour.hard_close_queue!
+        expect(office_hour.queue_started_at).to be_nil
+      end
+
+      it 'handles case when no current session exists' do
+        session = office_hour.current_session
+        session.update!(ended_at: Time.current)
+        
+        expect { office_hour.hard_close_queue! }.not_to raise_error
+        expect(office_hour.queue_active?).to be false
+      end
     end
 
     describe '#close_queue!' do
@@ -71,6 +144,11 @@ RSpec.describe OfficeHour, type: :model do
       it 'limits results' do
         12.times { |i| create(:queue_session, office_hour: office_hour, started_at: i.days.ago) }
         expect(office_hour.recent_sessions.count).to eq(10)
+      end
+
+      it 'accepts custom limit parameter' do
+        5.times { |i| create(:queue_session, office_hour: office_hour, started_at: i.days.ago) }
+        expect(office_hour.recent_sessions(limit: 3).count).to eq(3)
       end
     end
 

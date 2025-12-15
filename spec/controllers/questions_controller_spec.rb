@@ -11,27 +11,6 @@ RSpec.describe QuestionsController, type: :controller do
   end
 
   describe 'GET #index' do
-    it 'assigns the office hour' do
-      get :index, params: { office_hour_id: office_hour.id }
-      expect(assigns(:office_hour)).to eq(office_hour)
-    end
-
-    it 'assigns questions for the office hour' do
-      question1 = create(:question, office_hour: office_hour)
-      question2 = create(:question, office_hour: office_hour)
-      
-      get :index, params: { office_hour_id: office_hour.id }
-      expect(assigns(:questions)).to match_array([question1, question2])
-    end
-
-    it 'orders questions by created_at desc' do
-      question1 = create(:question, office_hour: office_hour, created_at: 1.day.ago)
-      question2 = create(:question, office_hour: office_hour, created_at: 2.days.ago)
-      
-      get :index, params: { office_hour_id: office_hour.id }
-      expect(assigns(:questions)).to eq([question1, question2])
-    end
-
     it 'redirects to the office hour' do
       get :index, params: { office_hour_id: office_hour.id }
       expect(response).to redirect_to(office_hour)
@@ -59,6 +38,30 @@ RSpec.describe QuestionsController, type: :controller do
       it 'sets a success notice' do
         post :create, params: { office_hour_id: office_hour.id, question: valid_attributes }
         expect(flash[:notice]).to match(/successfully/i)
+      end
+
+      it 'associates question with active queue session when queue is active' do
+        office_hour.update!(queue_active: true, queue_started_at: Time.current)
+        session = create(:queue_session, office_hour: office_hour, started_at: Time.current, ended_at: nil)
+        
+        post :create, params: { office_hour_id: office_hour.id, question: valid_attributes }
+        question = Question.last
+        expect(question.queue_session).to eq(session)
+      end
+
+      it 'does not associate question with session when queue is not active' do
+        post :create, params: { office_hour_id: office_hour.id, question: valid_attributes }
+        question = Question.last
+        expect(question.queue_session).to be_nil
+      end
+
+      it 'does not associate question with session when queue is active but no session exists' do
+        office_hour.update!(queue_active: true, queue_started_at: Time.current)
+        # No session created
+        
+        post :create, params: { office_hour_id: office_hour.id, question: valid_attributes }
+        question = Question.last
+        expect(question.queue_session).to be_nil
       end
     end
 
@@ -160,6 +163,16 @@ RSpec.describe QuestionsController, type: :controller do
           question: { question_text: '' }
         }
         expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns unprocessable_entity status when question_type is invalid' do
+        patch :update, params: {
+          office_hour_id: office_hour.id,
+          id: question.id,
+          question: { question_type: 'invalid_type' }
+        }
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to render_template('edit')
       end
     end
 

@@ -37,22 +37,6 @@
       ",
       onmouseover: "this.style.background='#{@view == 'my' ? '#1d4ed8' : '#eff6ff'}'",
       onmouseout: "this.style.background='#{@view == 'my' ? '#2563eb' : 'white'}'" %>
-
-  <%= link_to "All Hours",
-      office_hours_path(view: 'all'),
-      class: "ol-tab-btn #{'active' if @view == 'all'}",
-      style: "
-        padding: 8px 16px;
-        border-radius: 8px;
-        border: 1px solid #2563eb;
-        font-weight: 500;
-        text-decoration: none;
-        color: #{@view == 'all' ? 'white' : '#2563eb'};
-        background: #{@view == 'all' ? '#2563eb' : 'white'};
-        transition: all 0.2s ease;
-      ",
-      onmouseover: "this.style.background='#{@view == 'all' ? '#1d4ed8' : '#eff6ff'}'",
-      onmouseout: "this.style.background='#{@view == 'all' ? '#2563eb' : 'white'}'" %>
 </div>
 
 <!-- Dashboard View -->

@@ -1,10 +1,106 @@
-<!-- Back Link -->
-<div style="margin-bottom: 16px; text-align: right;">
-  <%= link_to "Back to Office Hours",
-      office_hours_path,
-      class: "ol-link",
-      style: "color: #2563eb; text-decoration: none; font-weight: 500;" %>
-</div>
+<% if current_user&.student? %>
+  <!-- Student Navigation Tabs (My Hours highlighted on detail page) -->
+  <div class="ol-tabs" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+    <%= link_to "Home",
+        office_hours_path,
+        class: "ol-tab-btn",
+        style: "
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid #2563eb;
+          font-weight: 500;
+          text-decoration: none;
+          color: #2563eb;
+          background: white;
+          transition: all 0.2s ease;
+        ",
+        onmouseover: "this.style.background='#eff6ff'",
+        onmouseout: "this.style.background='white'" %>
+
+    <%= link_to "My Classes",
+        student_profile_path,
+        class: "ol-tab-btn",
+        style: "
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid #2563eb;
+          font-weight: 500;
+          text-decoration: none;
+          color: #2563eb;
+          background: white;
+          transition: all 0.2s ease;
+        ",
+        onmouseover: "this.style.background='#eff6ff'",
+        onmouseout: "this.style.background='white'" %>
+
+    <%= link_to "My Hours",
+        student_my_hours_path,
+        class: "ol-tab-btn active",
+        style: "
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid #2563eb;
+          font-weight: 500;
+          text-decoration: none;
+          color: white;
+          background: #2563eb;
+          transition: all 0.2s ease;
+        ",
+        onmouseover: "this.style.background='#1d4ed8'",
+        onmouseout: "this.style.background='#2563eb'" %>
+
+    <%= link_to "My Questions",
+        student_questions_path,
+        class: "ol-tab-btn",
+        style: "
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid #2563eb;
+          font-weight: 500;
+          text-decoration: none;
+          color: #2563eb;
+          background: white;
+          transition: all 0.2s ease;
+        ",
+        onmouseover: "this.style.background='#eff6ff'",
+        onmouseout: "this.style.background='white'" %>
+  </div>
+<% elsif current_user&.ta? %>
+  <!-- TA Navigation Tabs (Dashboard / My Hours) -->
+  <div class="ol-tabs" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+    <%= link_to "Dashboard",
+        office_hours_path(view: "dashboard"),
+        class: "ol-tab-btn",
+        style: "
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid #2563eb;
+          font-weight: 500;
+          text-decoration: none;
+          color: #2563eb;
+          background: white;
+          transition: all 0.2s ease;
+        ",
+        onmouseover: "this.style.background='#eff6ff'",
+        onmouseout: "this.style.background='white'" %>
+
+    <%= link_to "My Hours",
+        office_hours_path(view: "my"),
+        class: "ol-tab-btn active",
+        style: "
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid #2563eb;
+          font-weight: 500;
+          text-decoration: none;
+          color: white;
+          background: #2563eb;
+          transition: all 0.2s ease;
+        ",
+        onmouseover: "this.style.background='#1d4ed8'",
+        onmouseout: "this.style.background='#2563eb'" %>
+  </div>
+<% end %>
 
 <!-- Office Hour Details -->
 <div class="office-hour-details ol-card"

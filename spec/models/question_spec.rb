@@ -7,8 +7,22 @@ RSpec.describe Question, type: :model do
   end
 
   describe 'validations' do
+    let(:office_hour) { create(:office_hour) }
+    let(:user) { create(:user) }
+    
     it { should validate_presence_of(:question_text) }
-    it { should validate_presence_of(:question_type) }
+    
+    it 'sets default question_type to general if blank' do
+      question = build(:question, office_hour: office_hour, user: user, question_type: nil)
+      question.valid?
+      expect(question.question_type).to eq('general')
+    end
+    
+    it 'validates inclusion of question_type' do
+      question = build(:question, office_hour: office_hour, user: user, question_type: 'invalid_type')
+      expect(question).not_to be_valid
+      expect(question.errors[:question_type]).to be_present
+    end
   end
 
   describe 'factory' do
@@ -34,9 +48,11 @@ RSpec.describe Question, type: :model do
       expect(question).to_not be_valid
     end
 
-    it 'is invalid without question_type' do
+    it 'sets default question_type to general if nil' do
       question.question_type = nil
-      expect(question).to_not be_valid
+      question.valid?
+      expect(question.question_type).to eq('general')
+      expect(question).to be_valid
     end
 
     it 'is invalid with invalid question_type' do
