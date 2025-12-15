@@ -71,6 +71,12 @@ RSpec.describe Users::SessionsController, type: :controller do
       it 'redirects with alert' do
         post :create, params: { user: { uni: 'test123', password: 'password123', role: 'ta' } }
         expect(flash[:alert]).to eq("No ta found for this UNI.")
+        expect(response).to redirect_to(new_user_session_path(uni: 'test123'))
+      end
+
+      it 'handles nil role in error message' do
+        post :create, params: { user: { uni: 'test123', password: 'password123' } }
+        expect(flash[:alert]).to match(/no.*account found/i)
       end
     end
 
@@ -78,12 +84,19 @@ RSpec.describe Users::SessionsController, type: :controller do
       it 'redirects with alert' do
         post :create, params: { user: { uni: 'test123', password: '', role: 'student' } }
         expect(flash[:alert]).to match(/enter your password/i)
+        expect(response).to redirect_to(new_user_session_path(uni: 'test123'))
       end
     end
 
     context 'with blank user params' do
       it 'redirects with alert' do
         post :create, params: {}
+        expect(flash[:alert]).to match(/provide login credentials/i)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+
+      it 'handles nil user params' do
+        post :create, params: { user: nil }
         expect(flash[:alert]).to match(/provide login credentials/i)
       end
     end
@@ -105,6 +118,22 @@ RSpec.describe Users::SessionsController, type: :controller do
         delete :destroy, params: { switch_to: 'ta' }
         expect(flash[:notice]).to match(/switched to ta account/i)
       end
+
+      it 'redirects to after_sign_in_path_for' do
+        delete :destroy, params: { switch_to: 'ta' }
+        expect(response).to redirect_to(controller.send(:after_sign_in_path_for, ta))
+      end
+
+      it 'handles case when other account does not exist' do
+        delete :destroy, params: { switch_to: 'nonexistent' }
+        expect(controller.current_user).to be_nil
+      end
+
+      it 'handles case when current_uni is nil' do
+        allow(controller).to receive(:current_user).and_return(nil)
+        delete :destroy, params: { switch_to: 'ta' }
+        expect(controller.current_user).to be_nil
+      end
     end
 
     context 'normal sign out' do
@@ -113,6 +142,36 @@ RSpec.describe Users::SessionsController, type: :controller do
       it 'signs out the user' do
         delete :destroy
         expect(controller.current_user).to be_nil
+      end
+
+      it 'sets flash message' do
+        delete :destroy
+        expect(flash[:notice]).to be_present
+      end
+    end
+  end
+
+  describe 'private methods' do
+    describe '#sign_in_params' do
+      context 'when user params are present' do
+        it 'permits uni, password, remember_me, and role' do
+          controller.params = ActionController::Parameters.new(
+            user: { uni: 'test123', password: 'password', remember_me: '1', role: 'student' }
+          )
+          result = controller.send(:sign_in_params)
+          expect(result['uni']).to eq('test123')
+          expect(result['password']).to eq('password')
+          expect(result['remember_me']).to eq('1')
+          expect(result['role']).to eq('student')
+        end
+      end
+
+      context 'when user params are not present' do
+        it 'returns empty hash' do
+          controller.params = ActionController::Parameters.new({})
+          result = controller.send(:sign_in_params)
+          expect(result).to eq({})
+        end
       end
     end
   end

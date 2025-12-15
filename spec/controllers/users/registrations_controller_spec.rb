@@ -75,5 +75,42 @@ RSpec.describe Users::RegistrationsController, type: :controller do
       }
       expect(assigns(:role)).to eq('ta')
     end
+
+    it 'defaults to student when role is not provided' do
+      post :create, params: {
+        user: {
+          uni: 'newuser',
+          password: 'password123',
+          password_confirmation: 'password123'
+        }
+      }
+      expect(assigns(:role)).to eq('student')
+    end
+  end
+
+  describe 'protected methods' do
+    describe '#configure_sign_up_params' do
+      it 'permits uni, role, and course_name' do
+        expect(controller.send(:configure_sign_up_params)).to be_nil
+      end
+    end
+
+    describe '#after_sign_up_path_for' do
+      let(:user) { create(:user) }
+      
+      it 'calls super' do
+        result = controller.send(:after_sign_up_path_for, user)
+        expect(result).to be_present
+      end
+    end
+
+    describe '#after_inactive_sign_up_path_for' do
+      let(:user) { create(:user) }
+      
+      it 'calls super' do
+        result = controller.send(:after_inactive_sign_up_path_for, user)
+        expect(result).to be_present
+      end
+    end
   end
 end

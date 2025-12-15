@@ -19,6 +19,10 @@ Rails.application.routes.draw do
     
     # Queue routes
     resources :queue_entries, only: [:create, :destroy] do
+      collection do
+        post :start_queue
+        post :close_queue
+      end
       member do
         delete :remove_student
       end

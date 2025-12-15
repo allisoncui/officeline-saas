@@ -1,7 +1,43 @@
 require 'rails_helper'
 
 RSpec.describe OfficeHour, type: :model do
-  # ... existing tests ...
+  describe 'associations' do
+    it { should have_many(:questions).dependent(:destroy) }
+    it { should have_many(:enrollments).dependent(:destroy) }
+    it { should have_many(:students).through(:enrollments) }
+    it { should have_many(:queue_entries).dependent(:destroy) }
+    it { should have_many(:queued_users).through(:queue_entries) }
+    it { should have_many(:queue_sessions).dependent(:destroy) }
+  end
+
+  describe 'validations' do
+    it { should validate_presence_of(:course_name) }
+    it { should validate_presence_of(:instructor) }
+    it { should validate_presence_of(:day) }
+    it { should validate_presence_of(:start_time) }
+    it { should validate_presence_of(:end_time) }
+    it { should validate_presence_of(:location) }
+
+    it 'validates ta_uni presence when instructor is present' do
+      office_hour = build(:office_hour, instructor: 'Dr. Smith', ta_uni: nil)
+      expect(office_hour).not_to be_valid
+      expect(office_hour.errors[:ta_uni]).to be_present
+    end
+
+    it 'allows ta_uni to be nil when instructor is nil' do
+      office_hour = build(:office_hour, instructor: nil, ta_uni: nil)
+      office_hour.valid?
+      expect(office_hour.errors[:ta_uni]).to be_empty
+    end
+  end
+
+  describe 'class methods' do
+    describe '.all_days' do
+      it 'returns array of weekdays' do
+        expect(OfficeHour.all_days).to eq(%w[Monday Tuesday Wednesday Thursday Friday])
+      end
+    end
+  end
 
   describe 'queue methods' do
     let(:office_hour) { create(:office_hour) }
@@ -91,6 +127,14 @@ RSpec.describe OfficeHour, type: :model do
       it 'handles case when no current session exists' do
         session = office_hour.current_session
         session.update!(ended_at: Time.current)
+        
+        expect { office_hour.hard_close_queue! }.not_to raise_error
+        expect(office_hour.queue_active?).to be false
+      end
+
+      it 'handles case when current_session returns nil' do
+        office_hour.update(queue_active: true)
+        allow(office_hour).to receive(:current_session).and_return(nil)
         
         expect { office_hour.hard_close_queue! }.not_to raise_error
         expect(office_hour.queue_active?).to be false

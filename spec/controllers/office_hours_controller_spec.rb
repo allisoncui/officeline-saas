@@ -141,6 +141,40 @@ RSpec.describe OfficeHoursController, type: :controller do
         get :index, params: { view: 'dashboard' }
         expect(assigns(:avg_questions_per_session)).to eq(4.0)
       end
+
+      it 'handles zero sessions for average calculation' do
+        create_list(:question, 3, office_hour: office_hour, user: student)
+        
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:avg_questions_per_session)).to eq(0)
+      end
+
+      it 'calculates most common question type' do
+        create_list(:question, 3, office_hour: office_hour, user: student, question_type: 'homework')
+        create_list(:question, 2, office_hour: office_hour, user: student, question_type: 'concept')
+        
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:most_common_type)).to eq('Homework')
+      end
+
+      it 'returns N/A when no questions exist for most common type' do
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:most_common_type)).to eq('N/A')
+      end
+
+      it 'calculates busiest hour' do
+        base_time = Time.zone.parse('2024-01-01 14:00:00')
+        create_list(:question, 3, office_hour: office_hour, user: student, created_at: base_time)
+        create_list(:question, 1, office_hour: office_hour, user: student, created_at: base_time + 1.hour)
+        
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:busiest_hour)).to eq('14')
+      end
+
+      it 'returns nil when no questions exist for busiest hour' do
+        get :index, params: { view: 'dashboard' }
+        expect(assigns(:busiest_hour)).to be_nil
+      end
     end
 
     context 'when days param is present' do
@@ -204,6 +238,43 @@ RSpec.describe OfficeHoursController, type: :controller do
       it 'defaults to course_name' do
         get :index
         expect(assigns(:sort_by)).to eq('course_name')
+      end
+    end
+
+    context 'when sorting by day' do
+      before { sign_in student }
+
+      it 'sorts office hours by day and time' do
+        oh1 = create(:office_hour, day: 'Wednesday', start_time: '2:00PM')
+        oh2 = create(:office_hour, day: 'Monday', start_time: '1:00PM')
+        oh3 = create(:office_hour, day: 'Monday', start_time: '10:00AM')
+        
+        get :index, params: { sort_by: 'day' }
+        sorted = assigns(:office_hours)
+        expect(sorted.first).to eq(oh3)
+        expect(sorted[1]).to eq(oh2)
+        expect(sorted.last).to eq(oh1)
+      end
+
+      it 'handles office hours with days not in all_days (uses fallback 99)' do
+        oh1 = create(:office_hour, day: 'Monday', start_time: '1:00PM')
+        oh2 = build(:office_hour, day: 'Saturday', start_time: '10:00AM')
+        oh2.save(validate: false)
+        
+        get :index, params: { sort_by: 'day', days: { 'Monday' => '1', 'Saturday' => '1' } }
+        sorted = assigns(:office_hours).to_a
+        expect(sorted).to include(oh1, oh2)
+        monday_pos = sorted.index(oh1)
+        saturday_pos = sorted.index(oh2)
+        expect(monday_pos).to be < saturday_pos
+      end
+
+      it 'groups all office hours under "All Office Hours" when sorting by day' do
+        create(:office_hour, day: 'Monday')
+        create(:office_hour, day: 'Tuesday')
+        
+        get :index, params: { sort_by: 'day' }
+        expect(assigns(:office_hours_by_course)).to have_key('All Office Hours')
       end
     end
   end
@@ -619,7 +690,29 @@ RSpec.describe OfficeHoursController, type: :controller do
   end
 
   describe '#authorize_ta_access' do
-    context 'when updating without authorization' do
+    context 'when student tries to edit' do
+      before { sign_in student }
+
+      it 'redirects when trying to edit' do
+        get :edit, params: { id: office_hour.id }
+        expect(response).to redirect_to(office_hours_path)
+        expect(flash[:alert]).to match(/only modify.*course/i)
+      end
+
+      it 'redirects when trying to update' do
+        patch :update, params: { id: office_hour.id, office_hour: { instructor: 'New Name' } }
+        expect(response).to redirect_to(office_hours_path)
+        expect(flash[:alert]).to match(/only modify.*course/i)
+      end
+
+      it 'redirects when trying to destroy' do
+        delete :destroy, params: { id: office_hour.id }
+        expect(response).to redirect_to(office_hours_path)
+        expect(flash[:alert]).to match(/only modify.*course/i)
+      end
+    end
+
+    context 'when TA from different course tries to modify' do
       let(:other_ta) { create(:user, :ta, uni: 'other_ta', course_name: 'Other Course') }
       
       before { sign_in other_ta }
@@ -634,6 +727,30 @@ RSpec.describe OfficeHoursController, type: :controller do
         delete :destroy, params: { id: office_hour.id }
         expect(response).to redirect_to(office_hours_path)
         expect(flash[:alert]).to match(/only modify.*course/i)
+      end
+    end
+  end
+
+  describe '#authorize_ta_for_queue' do
+    context 'when student tries to manage queue' do
+      before { sign_in student }
+
+      it 'redirects when trying to start queue' do
+        post :start_queue, params: { id: office_hour.id }
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:alert]).to match(/only tas can manage/i)
+      end
+
+      it 'redirects when trying to soft close queue' do
+        post :soft_close_queue, params: { id: office_hour.id }
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:alert]).to match(/only tas can manage/i)
+      end
+
+      it 'redirects when trying to hard close queue' do
+        post :hard_close_queue, params: { id: office_hour.id }
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:alert]).to match(/only tas can manage/i)
       end
     end
   end

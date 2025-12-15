@@ -46,15 +46,25 @@ RSpec.describe QueueEntriesController, type: :controller do
         expect(flash[:alert]).to match(/already in the queue/i)
       end
 
-      it 'handles save failure with "already in queue" validation error' do
-        # Create existing entry
-        create(:queue_entry, office_hour: office_hour, user: student)
+      it 'handles save failure with "already in queue" validation error (race condition)' do
+        allow_any_instance_of(OfficeHour).to receive(:user_in_queue?).and_return(false)
+        allow_any_instance_of(OfficeHour).to receive_message_chain(:queue_entries, :where).and_return(QueueEntry.none)
         
-        # Try to create duplicate
+        entry = QueueEntry.new(office_hour: office_hour, user: student, queue_session: queue_session)
+        allow_any_instance_of(OfficeHour).to receive_message_chain(:queue_entries, :build).and_return(entry)
+        allow_any_instance_of(OfficeHour).to receive_message_chain(:queue_sessions, :find_by).and_return(queue_session)
+        
+        allow(entry).to receive(:save).and_return(false)
+        allow(entry).to receive(:reload)
+        
+        errors_object = ActiveModel::Errors.new(entry)
+        errors_object.add(:user_id, "already in queue")
+        allow(entry).to receive(:errors).and_return(errors_object)
+        
         post :create, params: { office_hour_id: office_hour.id }
         
         expect(response).to redirect_to(office_hour)
-        expect(flash[:alert]).to match(/already in the queue/i)
+        expect(flash[:alert]).to match(/someone joined at the same time/i)
       end
 
       it 'handles save failure with other validation errors' do
@@ -150,6 +160,94 @@ RSpec.describe QueueEntriesController, type: :controller do
         delete :remove_student, params: { office_hour_id: office_hour.id, id: entry.id }
         expect(response).to redirect_to(office_hour)
         expect(flash[:alert]).to match(/only tas/i)
+      end
+    end
+  end
+
+  describe 'POST #start_queue' do
+    context 'as a TA' do
+      before { sign_in ta }
+
+      it 'starts the queue successfully' do
+        expect(office_hour.queue_active?).to be false
+        
+        post :start_queue, params: { office_hour_id: office_hour.id }
+        
+        expect(office_hour.reload.queue_active?).to be true
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:notice]).to match(/queue has been started/i)
+      end
+
+      it 'calls start_queue! on the office hour' do
+        allow(controller).to receive(:set_office_hour).and_call_original
+        expect_any_instance_of(OfficeHour).to receive(:start_queue!)
+        post :start_queue, params: { office_hour_id: office_hour.id }
+      end
+    end
+
+    context 'as a student' do
+      before { sign_in student }
+
+      it 'denies access and redirects with alert' do
+        post :start_queue, params: { office_hour_id: office_hour.id }
+        
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:alert]).to match(/only tas can start the queue/i)
+        expect(office_hour.reload.queue_active?).to be false
+      end
+    end
+
+    context 'when not signed in' do
+      it 'redirects to sign in page' do
+        post :start_queue, params: { office_hour_id: office_hour.id }
+        
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+  end
+
+  describe 'POST #close_queue' do
+    context 'as a TA' do
+      before { sign_in ta }
+
+      it 'closes the queue successfully' do
+        office_hour.update(queue_active: true)
+        expect(office_hour.queue_active?).to be true
+        
+        post :close_queue, params: { office_hour_id: office_hour.id }
+        
+        expect(office_hour.reload.queue_active?).to be false
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:notice]).to match(/queue has been closed/i)
+      end
+
+      it 'calls close_queue! on the office hour' do
+        office_hour.update(queue_active: true)
+        allow(controller).to receive(:set_office_hour).and_call_original
+        expect_any_instance_of(OfficeHour).to receive(:close_queue!)
+        post :close_queue, params: { office_hour_id: office_hour.id }
+      end
+    end
+
+    context 'as a student' do
+      before { sign_in student }
+
+      it 'denies access and redirects with alert' do
+        office_hour.update(queue_active: true)
+        
+        post :close_queue, params: { office_hour_id: office_hour.id }
+        
+        expect(response).to redirect_to(office_hour)
+        expect(flash[:alert]).to match(/only tas can close the queue/i)
+        expect(office_hour.reload.queue_active?).to be true
+      end
+    end
+
+    context 'when not signed in' do
+      it 'redirects to sign in page' do
+        post :close_queue, params: { office_hour_id: office_hour.id }
+        
+        expect(response).to redirect_to(new_user_session_path)
       end
     end
   end

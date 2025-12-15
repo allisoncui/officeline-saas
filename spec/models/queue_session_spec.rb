@@ -4,6 +4,7 @@ RSpec.describe QueueSession, type: :model do
   describe 'associations' do
     it { should belong_to(:office_hour) }
     it { should have_many(:queue_entries).dependent(:nullify) }
+    it { should have_many(:questions).dependent(:nullify) }
   end
 
   describe 'validations' do

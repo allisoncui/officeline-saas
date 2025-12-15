@@ -20,6 +20,13 @@ RSpec.describe User, type: :model do
       expect(duplicate).not_to be_valid
       expect(duplicate.errors[:uni]).to be_present
     end
+
+    it 'includes uni value in uniqueness error message' do
+      create(:user, uni: 'abc123', role: 'student')
+      duplicate = build(:user, uni: 'abc123', role: 'student')
+      duplicate.valid?
+      expect(duplicate.errors[:uni].first).to include('abc123')
+    end
     
     it 'allows same UNI with different roles' do
       create(:user, uni: 'abc123', role: 'student')
@@ -57,6 +64,16 @@ RSpec.describe User, type: :model do
         user = build(:user, role: 'student')
         expect(user.ta?).to be false
       end
+
+      it 'handles uppercase role' do
+        user = build(:user, role: 'TA', course_name: 'CS 101')
+        expect(user.ta?).to be true
+      end
+
+      it 'handles mixed case role' do
+        user = build(:user, role: 'Ta', course_name: 'CS 101')
+        expect(user.ta?).to be true
+      end
     end
 
     describe '#student?' do
@@ -68,6 +85,16 @@ RSpec.describe User, type: :model do
       it 'returns false for ta role' do
         user = build(:user, role: 'ta', course_name: 'CS 101')
         expect(user.student?).to be false
+      end
+
+      it 'handles uppercase role' do
+        user = build(:user, role: 'STUDENT')
+        expect(user.student?).to be true
+      end
+
+      it 'handles mixed case role' do
+        user = build(:user, role: 'Student')
+        expect(user.student?).to be true
       end
     end
   end
