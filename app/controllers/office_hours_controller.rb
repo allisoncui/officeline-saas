@@ -64,7 +64,7 @@ class OfficeHoursController < ApplicationController
 
         # Busiest hour (by question creation time)
         @busiest_hour = @questions
-          .group("strftime('%H', questions.created_at)")
+          .group("EXTRACT(HOUR FROM questions.created_at)")
           .count
           .max_by { |_k, v| v }
         &.first
