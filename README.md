@@ -36,4 +36,4 @@ To run tests, use the following commands:
 * Cucumber (acceptance & feature tests): `bundle exec cucumber` 
 
 ## Heroku Link
-https://aqueous-forest-10095-39cac18cf0b2.herokuapp.com/
+[https://quiet-ridge-88602-d4b3d9910bd8.herokuapp.com/users/sign_in](url)
