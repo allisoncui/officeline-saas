@@ -4,7 +4,7 @@
 
 Officeline is a SaaS application that centralizes office hours for students and TAs to effectively browse and give/receive academic help. Features include a virtual queue, real-time updates, push notifications, and a dashboard to submit questions and analyze topics.
 
-For iteration 2, our last commmit is Commit 9eb5778.
+For our final iteration, the last commit is _.
 
 ## Team Members
 - Allison Cui (ac5187)
